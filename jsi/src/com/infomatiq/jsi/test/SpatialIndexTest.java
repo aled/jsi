@@ -1,6 +1,6 @@
 //   SpatialIndexTest.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002-2003 Infomatiq Limited.
+//   Copyright (C) 2002-2005 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ import com.infomatiq.jsi.SpatialIndex;
  * SpatialIndexTest
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b3
+ * @version 1.0b4
  */
 public class SpatialIndexTest extends TestCase {
   
@@ -102,11 +102,23 @@ public class SpatialIndexTest extends TestCase {
     }  
   }
   
-  private Rectangle getRandomRectangle(Random r, float rectangleSize, float canvasSize) {
-    float x1 = (float) (r.nextGaussian() * canvasSize);
-    float y1 = (float) (r.nextGaussian() * canvasSize);
-    float x2 = x1 + (float) (r.nextGaussian() * rectangleSize);
-    float y2 = y1 + (float) (r.nextGaussian() * rectangleSize);
+  private float quantize(double d, int quantizer) {
+    if (quantizer <= 0) {
+      return (float) d;
+    }
+    
+    d /= quantizer;
+    d = Math.round(d);
+    d *= quantizer;
+    
+    return (float) d;
+  }
+  
+  private Rectangle getRandomRectangle(Random r, float rectangleSize, float canvasSize, int quantizer) {
+    float x1 = quantize(r.nextGaussian() * canvasSize, quantizer);
+    float y1 = quantize(r.nextGaussian() * canvasSize, quantizer);
+    float x2 = x1 + quantize(r.nextGaussian() * rectangleSize, quantizer);
+    float y2 = y1 + quantize(r.nextGaussian() * rectangleSize, quantizer);
     
     return new Rectangle(x1, y1, x2, y2);
   }
@@ -141,6 +153,8 @@ public class SpatialIndexTest extends TestCase {
     df.setMaximumIntegerDigits(7);
     df.setPositivePrefix(" ");
     df.setGroupingUsed(false);
+    
+    int quantizer = -1;
  
     String strTestInputRoot = "tests" + File.separator + "test-" + testId;
     String strTestResultsRoot = "test-results" + File.separator + "test-" + testId;
@@ -210,7 +224,9 @@ public class SpatialIndexTest extends TestCase {
         StringTokenizer st = new StringTokenizer(inputLine);
         while (st.hasMoreTokens()) {
          String operation = st.nextToken().toUpperCase();
-          if (operation.equals("RANDOMIZE")) {
+          if (operation.equals("DISTANCEQUANTIZER")) {
+            quantizer = Integer.parseInt(st.nextToken());
+          } else if (operation.equals("RANDOMIZE")) {
             random.setSeed(Long.parseLong(st.nextToken()));
             if (testType == REFERENCE_COMPARISON_TEST || testType == REFERENCE_GENERATE) {
               writeOutput(outputBuffer.toString() + " : OK", outputFile, referenceFile);
@@ -227,7 +243,7 @@ public class SpatialIndexTest extends TestCase {
             long startTime = System.currentTimeMillis();
                
             for (int id = startId; id < startId + count; id++) {
-              Rectangle r = getRandomRectangle(random, rectangleSize, canvasSize);
+              Rectangle r = getRandomRectangle(random, rectangleSize, canvasSize, quantizer);
               si.add(r, id);
             
               if (testType == REFERENCE_COMPARISON_TEST || testType == REFERENCE_GENERATE) {
@@ -262,7 +278,7 @@ public class SpatialIndexTest extends TestCase {
             
             int successfulDeleteCount = 0;   
             for (int id = startId; id < startId + count; id++) {
-              Rectangle r = getRandomRectangle(random, rectangleSize, canvasSize);
+              Rectangle r = getRandomRectangle(random, rectangleSize, canvasSize, quantizer);
               boolean deleted = si.delete(r, id);
              
               if (deleted) {
@@ -392,7 +408,7 @@ public class SpatialIndexTest extends TestCase {
             int totalEntriesReturned = 0;
             
             for (int id = 0; id < queryCount; id++) {
-              Rectangle r = getRandomRectangle(random, rectangleSize, canvasSize);
+              Rectangle r = getRandomRectangle(random, rectangleSize, canvasSize, quantizer);
               List l = ld.intersects(r);
               totalEntriesReturned += l.size();
               
@@ -435,7 +451,7 @@ public class SpatialIndexTest extends TestCase {
             int totalEntriesReturned = 0;
             
             for (int id = 0; id < queryCount; id++) {
-              Rectangle r = getRandomRectangle(random, rectangleSize, canvasSize);
+              Rectangle r = getRandomRectangle(random, rectangleSize, canvasSize, quantizer);
               List l = ld.contains(r);
               totalEntriesReturned += l.size();
               

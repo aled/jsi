@@ -1,6 +1,6 @@
 //   ReferenceTest.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002-2003 Infomatiq Limited.
+//   Copyright (C) 2002-2005 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@ import org.apache.log4j.Logger;
  * implementations, specifically SimpleIndex and Spatial Index Library.
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b3
+ * @version 1.0b4
  */
 public class ReferenceGenerateTest extends SpatialIndexTest {
 
@@ -40,7 +40,7 @@ public class ReferenceGenerateTest extends SpatialIndexTest {
     super(s);
   }
   
-  public void testReferenceGenerateAllFunctions() {
+  public void xtestReferenceGenerateAllFunctions() {
     log.debug("testReferenceGenerateAllFunctions()");
     
     Properties p = new Properties();
@@ -48,21 +48,21 @@ public class ReferenceGenerateTest extends SpatialIndexTest {
     log.info("Creating reference test results (all functions) for 100 entries.");
     runScript("test.SimpleIndex", p, "allfunctions-100", REFERENCE_GENERATE);
     
-//    log.info("Creating reference test results (all functions) for 1000 entries.");
-//    runScript("test.SimpleIndex", p, "allfunctions-1000", REFERENCE_GENERATE);
-//    
-//    log.info("Creating reference test results (all functions) for 10,000 entries.");
-//    runScript("test.SimpleIndex", p, "allfunctions-10000", REFERENCE_GENERATE);
-//    
-//    p.setProperty("MinNodeEntries", "1");
-//    p.setProperty("MaxNodeEntries", "13"); // different to other tests
-//    p.setProperty("TreeVariant", "Rstar");
-//
-//    log.info("Creating reference test results (all functions) for 100,000 entries.");
-//    runScript("test.SILWrapper", p, "allfunctions-100000", REFERENCE_GENERATE);
+    log.info("Creating reference test results (all functions) for 1000 entries.");
+    runScript("test.SimpleIndex", p, "allfunctions-1000", REFERENCE_GENERATE);
+    
+    log.info("Creating reference test results (all functions) for 10,000 entries.");
+    runScript("test.SimpleIndex", p, "allfunctions-10000", REFERENCE_GENERATE);
+    
+    p.setProperty("MinNodeEntries", "1");
+    p.setProperty("MaxNodeEntries", "13"); // different to other tests
+    p.setProperty("TreeVariant", "Rstar");
+
+ //   log.info("Creating reference test results (all functions) for 100,000 entries.");
+ //   runScript("test.SILWrapper", p, "allfunctions-100000", REFERENCE_GENERATE);
   }
   
-  public void XtestReferenceGenerateDelete() {
+  public void xtestReferenceGenerateDelete() {
     log.debug("testReferenceGenerateDelete()");
    
     Properties p = new Properties();
@@ -76,11 +76,11 @@ public class ReferenceGenerateTest extends SpatialIndexTest {
     log.info("Creating reference testDelete results for 10,000 entries.");
     runScript("test.SimpleIndex", p, "delete-10000", REFERENCE_GENERATE);
 
-    log.info("Creating reference testDelete results for 100,000 entries.");
-    runScript("test.SimpleIndex", p, "delete-100000", REFERENCE_GENERATE); 
+  //  log.info("Creating reference testDelete results for 100,000 entries.");
+  //  runScript("test.SimpleIndex", p, "delete-100000", REFERENCE_GENERATE); 
   }
   
-  public void XtestReferenceGenerateIntersect() {
+  public void xtestReferenceGenerateIntersect() {
     log.debug("testReferenceGenerateIntersect()");
     
     Properties p = new Properties();
@@ -98,11 +98,11 @@ public class ReferenceGenerateTest extends SpatialIndexTest {
     p.setProperty("MaxNodeEntries", "13"); // different to other tests
     p.setProperty("TreeVariant", "Rstar");
     
-    log.info("Creating reference testIntersect results for 100,000 entries.");
-    runScript("test.SILWrapper",  p, "intersect-100000", REFERENCE_GENERATE);
+  //  log.info("Creating reference testIntersect results for 100,000 entries.");
+  //  runScript("test.SILWrapper",  p, "intersect-100000", REFERENCE_GENERATE);
   }
   
-  public void XtestReferenceGenerateNearest() {
+  public void xtestReferenceGenerateNearest() {
     log.debug("testReferenceGenerateNearest()");
     
     Properties p = new Properties();
@@ -120,11 +120,11 @@ public class ReferenceGenerateTest extends SpatialIndexTest {
     p.setProperty("MaxNodeEntries", "13"); // different to other tests
     p.setProperty("TreeVariant", "Rstar");
     
-    log.info("Creating reference testIntersect results for 100,000 entries.");
-    runScript("test.SILWrapper",   p, "nearest-100000", REFERENCE_GENERATE);
+    //log.info("Creating reference testIntersect results for 100,000 entries.");
+    //runScript("test.SILWrapper",   p, "nearest-100000", REFERENCE_GENERATE);
   }
   
-  public void XtestReferenceGenerateNearestN() {
+  public void testReferenceGenerateNearestN() {
     log.debug("testReferenceGenerateNearestN()");
     
     Properties p = new Properties();
@@ -132,11 +132,11 @@ public class ReferenceGenerateTest extends SpatialIndexTest {
     log.info("Creating reference testNearestN results for 100 entries.");
     runScript("test.SimpleIndex",  p, "nearestN-100", REFERENCE_GENERATE);
     
-    log.info("Creating reference testNearestN results for 1000 entries.");
-    runScript("test.SimpleIndex",  p, "nearestN-1000", REFERENCE_GENERATE);
+//    log.info("Creating reference testNearestN results for 1000 entries.");
+//    runScript("test.SimpleIndex",  p, "nearestN-1000", REFERENCE_GENERATE);
     
-    log.info("Creating reference testNearestN results for 10,000 entries.");
-    runScript("test.SimpleIndex",  p, "nearestN-10000", REFERENCE_GENERATE);
+//    log.info("Creating reference testNearestN results for 10,000 entries.");
+//    runScript("test.SimpleIndex",  p, "nearestN-10000", REFERENCE_GENERATE);
         
 //    p.setProperty("MinNodeEntries", "1");
 //    p.setProperty("MaxNodeEntries", "13"); // different to other tests
@@ -147,7 +147,7 @@ public class ReferenceGenerateTest extends SpatialIndexTest {
   }
   
   
-  public void XtestReferenceGenerateContains() {
+  public void xtestReferenceGenerateContains() {
     log.debug("testReferenceGenerateContains()");
     
     Properties p = new Properties();
@@ -165,7 +165,7 @@ public class ReferenceGenerateTest extends SpatialIndexTest {
     p.setProperty("MaxNodeEntries", "13"); // different to other tests
     p.setProperty("TreeVariant", "Rstar");
     
-    log.info("Creating reference testIntersect results for 100,000 entries.");
-    runScript("test.SILWrapper",   p, "contains-100000", REFERENCE_GENERATE);
+ //   log.info("Creating reference testIntersect results for 100,000 entries.");
+ //   runScript("test.SILWrapper",   p, "contains-100000", REFERENCE_GENERATE);
   }
 }

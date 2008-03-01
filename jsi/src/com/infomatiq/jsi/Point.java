@@ -1,6 +1,6 @@
 //   Point.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002-2003 Infomatiq Limited.
+//   Copyright (C) 2002-2005 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@ package com.infomatiq.jsi;
  * Currently hardcoded to 2 dimensions, but could be extended.
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b3
+ * @version 1.0b4
  */
 public class Point {
   /**

@@ -1,6 +1,6 @@
 //   SimpleIndex.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002-2003 Infomatiq Limited.
+//   Copyright (C) 2002-2005 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,7 @@ import gnu.trove.TIntArrayList;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TIntObjectIterator;
 import gnu.trove.TIntProcedure;
+
 import java.util.Properties;
 
 import com.infomatiq.jsi.Point;
@@ -42,11 +43,11 @@ import com.infomatiq.jsi.SpatialIndex;
  * <p>On the other hand, the add() and delete() methods are very fast :-)</p>
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b3
+ * @version 1.0b4
  */
 public class SimpleIndex implements SpatialIndex {
   TIntObjectHashMap m_map = new TIntObjectHashMap();
-  private static final String version = "1.0b3";
+  private static final String version = "1.0b4";
   
   /**
    * Does nothing. There are no implementation dependent properties for 
@@ -119,7 +120,7 @@ public class SimpleIndex implements SpatialIndex {
           int maxDistanceCount = 1;
           int currentIndex = distances.size() - 1;
           float maxDistance = distances.get(currentIndex);
-          while (currentIndex - 1 > 0 && distances.get(currentIndex - 1) == maxDistance) {
+          while (currentIndex - 1 >= 0 && distances.get(currentIndex - 1) == maxDistance) {
             currentIndex--;
             maxDistanceCount++; 
           }
@@ -146,6 +147,15 @@ public class SimpleIndex implements SpatialIndex {
       } 
     });
   }  
+
+  /**
+   * Same as nearestN
+   * 
+   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(com.infomatiq.jsi.Point, com.infomatiq.jsi.IntProcedure, int, float)
+   */
+  public void nearestNUnsorted(Point p, final TIntProcedure v, int n, float furthestDistance) {
+    nearestN(p, v, n, furthestDistance);
+  } 
   
   /**
    * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, IntProcedure)

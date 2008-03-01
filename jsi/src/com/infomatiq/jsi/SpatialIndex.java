@@ -1,6 +1,6 @@
 //   SpatialIndex.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002-2003 Infomatiq Limited.
+//   Copyright (C) 2002-2005 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@ import java.util.Properties;
  * spatial indexes. This includes the RTree and its variants.
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b3
+ * @version 1.0b4
  */
 public interface SpatialIndex {
   
@@ -116,6 +116,12 @@ public interface SpatialIndex {
   public void nearestN(Point p, TIntProcedure v, int n, float distance);
   
   /**
+   * Same as nearestN, except the found rectangles are not returned
+   * in sorted order. This may be faster, depending on the implementation.
+   */
+  public void nearestNUnsorted(Point p, TIntProcedure v, int n, float distance);
+  
+  /**
    * Finds all rectangles that intersect the passed rectangle.
    * 
    * @param  r The rectangle for which this method finds
@@ -132,7 +138,7 @@ public interface SpatialIndex {
    * @param r The rectangle for which this method finds
    *           contained rectangles.
    * 
-   * @param v The visitor whose visit() method is is called
+   * @param ip The procedure whose visit() method is is called
    *           for each contained rectangle.
    */
   public void contains(Rectangle r, TIntProcedure ip); 

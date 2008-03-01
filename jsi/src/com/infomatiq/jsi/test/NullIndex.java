@@ -1,6 +1,6 @@
 //   NullIndex.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002-2003 Infomatiq Limited.
+//   Copyright (C) 2002-2005 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,7 @@
 package com.infomatiq.jsi.test;
 
 import gnu.trove.TIntProcedure;
+
 import java.util.Properties;
 
 import com.infomatiq.jsi.Point;
@@ -31,10 +32,10 @@ import com.infomatiq.jsi.SpatialIndex;
  * testing framework.
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b3
+ * @version 1.0b4
  */
 public class NullIndex implements SpatialIndex {
-  private static final String version = "1.0b3";
+  private static final String version = "1.0b4";
     
   /**
    * @see com.infomatiq.jsi.SpatialIndex#init(Properties)
@@ -52,6 +53,12 @@ public class NullIndex implements SpatialIndex {
    * @see com.infomatiq.jsi.SpatialIndex#nearestN(com.infomatiq.jsi.Point, com.infomatiq.jsi.IntProcedure, int, float)
    */
   public void nearestN(Point p, TIntProcedure v, int n, float distance) {
+  }
+ 
+  /**
+   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(com.infomatiq.jsi.Point, com.infomatiq.jsi.IntProcedure, int, float)
+   */
+  public void nearestNUnsorted(Point p, TIntProcedure v, int n, float distance) {
   }
   
   /**
