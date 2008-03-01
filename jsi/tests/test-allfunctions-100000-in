@@ -1,0 +1,47 @@
+# Full test script. Add 200 entries. After 40 have been added delete 20.
+# Use a range of scales from 100 to 1600
+randomize         1
+addRandom        4000 0 100
+randomize         1
+deleteRandom     2000 0 100
+#
+randomize         2
+addRandom        4000 40000 200
+randomize         2
+deleteRandom     2000 40000 200
+#
+randomize         3
+addRandom        40000 80000 400
+randomize         3
+deleteRandom     20000 80000 400
+#
+randomize         4
+addRandom        40000 120000 800
+randomize         4
+deleteRandom     20000 120000 800
+#
+randomize         5
+addRandom        40000 160000 1600
+randomize         5
+deleteRandom     20000 160000 1600
+#
+randomize         6
+intersectRandom  20000   100
+intersectRandom  20000   200
+intersectRandom  20000   400
+intersectRandom  20000   800
+intersectRandom  20000   1600
+#
+randomize         7
+nearestRandom    20000   100
+nearestRandom    20000   200
+nearestRandom    20000   400
+nearestRandom    20000   800
+nearestRandom    20000   1600
+#
+randomize         8
+containsRandom   20000   100
+containsRandom   20000   200
+containsRandom   20000   400
+containsRandom   20000   800
+containsRandom   20000   1600

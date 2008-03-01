@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+
+<!-- ANT script to build JSI -->
+
+<project name="JSI build" default="help" basedir="..">
+
+  <!-- version number -->
+  <property name="version" value="1.0b1"/>
+ 
+  <!-- library includes -->
+  <property name="lib.dir" value="${basedir}/jsi/lib"/>
+
+  <path id="classpath">
+    <fileset dir="${lib.dir}">
+      <include name="log4j-1.2.6.jar"/>
+      <include name="junit-3.7.0.jar"/>
+      <include name="trove-0.1.8.jar"/>
+      <include name="sil-0.43b-am1.jar"/>
+    </fileset>
+  </path>
+
+  <!-- targets -->
+  
+  <target name="help">
+    <echo message="JSI build.xml:  Help on buildfile usage and targets."/>
+    <echo message=""/>
+    <echo message="This buildfile is used to generate a release of the JSI (Java Spatial Index) RTree library"/>
+    <echo message=""/>
+    <echo message="Targets:"/>
+    <echo message=""/>
+	<echo message="  o  help      Display this message."/>
+	<echo message="  o  clean     Remove all generated files, create build folders and other preparation."/>
+	<echo message="  o  compile   Generate classes"/>
+	<echo message="  o  javadoc   Generate javadoc documentation"/>
+	<echo message="  o  jar       Create jsi.jar from compiled classes and resources."/>
+	<echo message="  o  zip       Create zip file containing the release."/>
+	<echo message="  o  all       Above targets (without help) in order."/>
+    <echo message=""/>
+    <echo message="Key properties:"/>
+    <echo message=""/>
+	<echo message="  o  basedir   Location of JSI project root."/>
+  </target>
+
+  <target name="clean" description="Remove all generated files.">
+    <delete dir="${basedir}/jsi/bin"/>
+    <delete dir="${basedir}/jsi/jar"/>
+    <delete dir="${basedir}/jsi-website/javadoc/${version}"/>
+    <delete file="${basedir}/jsi-release/${version}.zip"/>
+  </target>
+
+  <target name="prepare" description="Create dirs.">
+    <mkdir dir="${basedir}/jsi/bin"/>
+    <mkdir dir="${basedir}/jsi/jar"/>
+    <mkdir dir="${basedir}/jsi/doc/javadoc"/>
+    <mkdir dir="${basedir}/jsi-website/javadoc/${version}"/>
+    <mkdir dir="${basedir}/jsi-release"/>
+  </target>
+
+  <target name="compile" depends="prepare" description="Generate classes.">
+    <javac srcdir="${basedir}/jsi/src" destdir="${basedir}/jsi/bin">
+      <classpath refid="classpath"/>
+    </javac>
+    <copy todir="${basedir}/jsi/bin" file="${basedir}/jsi/src/log4j.properties"/>
+  </target>
+
+  <target name="jar" depends="compile" description="Create jsi.jar from compiled classes and resources.">
+    <!-- main jar -->
+    <jar jarfile="${basedir}/jsi/jar/jsi-${version}.jar"
+      basedir="${basedir}/jsi/bin"
+      excludes="**/com/infomatiq/jsi/test/*"
+    />
+    <!-- test jar -->
+    <jar jarfile="${basedir}/jsi/jar/jsi-test-${version}.jar"
+      basedir="${basedir}/jsi/bin"
+      includes="**/com/infomatiq/jsi/test/*"
+    />
+  </target>
+
+  <target name="javadoc">
+     <javadoc destdir="${basedir}/jsi/doc/javadoc"
+       access="public" use="true" notree="false" nonavbar="false"
+       noindex="false" splitindex="false" author="true"
+       version="true" nodeprecatedlist="false" nodeprecated="false"
+       packagenames="com.infomatiq.jsi,com.infomatiq.jsi.rtree"
+       sourcepath="${basedir}/jsi/src"
+       classpathref="classpath"/>
+       
+    <copy todir="${basedir}/jsi-website/javadoc/${version}">
+      <fileset dir="${basedir}/jsi/doc/javadoc"/>
+    </copy>
+  </target>
+
+  <target name="zip" depends="compile,jar,javadoc" description="Create zip file containing the JSI release">
+    <zip zipfile="${basedir}/jsi-release/jsi-${version}.zip">
+      <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="**/jsi/src/"/>
+      <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="**/jsi/bin/"/>
+      <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="**/jsi/jar/"/>
+      <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="**/jsi/doc/"/>
+      <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="**/jsi/tests/"/>
+      <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="**/jsi/lib/"/>
+      <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="jsi/build.xml"/>
+      <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="jsi/test-results/test-full-100-reference"/>
+    </zip>
+  </target>
+  
+  <target name="all" depends="clean,prepare,compile,jar,javadoc,zip">
+  </target>
+
+</project>

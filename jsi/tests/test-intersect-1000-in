@@ -1,0 +1,5 @@
+# scale chosen by trial-and-error to give an average of 10 intersects per query.
+# 435.7 = 10.001
+randomize          1 
+addRandom       1000 0 435.7
+intersectRandom 1000   435.7

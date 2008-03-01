@@ -1,0 +1,15 @@
+# 1000 = 43
+# 1500 = 21.8101
+# 1800 = 15
+# 2100 = 11.9093
+# 2200 = 10.969
+# 2300 = 10.2979
+# 2400 = 9.7034
+randomize              1
+addRandom        20000 0 2350
+randomize              1
+deleteRandom     10000 0 2350
+randomize       123456
+deleteRandom     10000 0 2350
+randomize              2
+intersectRandom  10000 0 2350

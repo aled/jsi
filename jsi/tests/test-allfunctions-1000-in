@@ -1,0 +1,45 @@
+randomize         1
+addRandom        400 0 100
+randomize         1
+deleteRandom     200 0 100
+#
+randomize         2
+addRandom        400 400 200
+randomize         2
+deleteRandom     200 400 200
+#
+randomize         3
+addRandom        400 800 400
+randomize         3
+deleteRandom     200 800 400
+#
+randomize         4
+addRandom        400 1200 800
+randomize         4
+deleteRandom     200 1200 800
+#
+randomize         5
+addRandom        400 1600 1600
+randomize         5
+deleteRandom     200 1600 1600
+#
+randomize         6
+intersectRandom  200   100
+intersectRandom  200   200
+intersectRandom  200   400
+intersectRandom  200   800
+intersectRandom  200   1600
+#
+randomize         7
+nearestRandom    200   100
+nearestRandom    200   200
+nearestRandom    200   400
+nearestRandom    200   800
+nearestRandom    200   1600
+#
+randomize         8
+containsRandom   200   100
+containsRandom   200   200
+containsRandom   200   400
+containsRandom   200   800
+containsRandom   200   1600

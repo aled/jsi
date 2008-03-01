@@ -1,0 +1,9 @@
+#4995=15.77595
+randomize               1
+addRandom        200000 0 5500
+randomize               1
+deleteRandom     100000 0 5500
+randomize        123456
+deleteRandom     100000 0 5500
+randomize               2
+intersectRandom  100000 0 5500
