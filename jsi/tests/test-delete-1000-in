@@ -1,0 +1,8 @@
+randomize             1
+addRandom        2000 0 646.8
+randomize             1
+deleteRandom     1000 0 646.8
+randomize      123456
+deleteRandom     1000 0 646.8
+randomize             2
+intersectRandom  1000 0 646.8

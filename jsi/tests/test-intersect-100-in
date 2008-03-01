@@ -1,0 +1,4 @@
+# scale chosen by trial-and-error to give about 10 intersects per query.
+randomize         1
+addRandom       100   0 129.7
+intersectRandom 100     129.7

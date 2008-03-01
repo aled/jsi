@@ -1,0 +1,3 @@
+randomize         1
+addRandom      1000   0 60
+containsRandom 1000     60

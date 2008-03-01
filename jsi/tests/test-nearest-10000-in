@@ -1,0 +1,3 @@
+randomize         1
+addRandom     10000   0 10000
+nearestRandom 10000     10000
