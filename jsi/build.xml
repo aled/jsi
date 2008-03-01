@@ -5,7 +5,7 @@
 <project name="JSI build" default="help" basedir="..">
 
   <!-- version number -->
-  <property name="version" value="1.0b1"/>
+  <property name="version" value="1.0b2"/>
  
   <!-- library includes -->
   <property name="lib.dir" value="${basedir}/jsi/lib"/>
@@ -99,7 +99,7 @@
       <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="**/jsi/tests/"/>
       <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="**/jsi/lib/"/>
       <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="jsi/build.xml"/>
-      <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="jsi/test-results/test-full-100-reference"/>
+      <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="jsi/test-results/test-allfunctions-100-reference"/>
     </zip>
   </target>
   

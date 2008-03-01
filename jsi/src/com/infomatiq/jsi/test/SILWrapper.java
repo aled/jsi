@@ -50,7 +50,7 @@ public class SILWrapper implements SpatialIndex {
   private static final Logger log = 
     Logger.getLogger(SILWrapper.class.getName());
     
-  private static final String version = "1.0b1";
+  private static final String version = "1.0b2";
   
   private IStorageManager storageManager = null; 
   private ISpatialIndex tree = null;
@@ -158,6 +158,13 @@ public class SILWrapper implements SpatialIndex {
    */
   public int size() {
     return size;
+  }
+
+  /**
+   * @see com.infomatiq.jsi.SpatialIndex#getBounds()
+   */
+  public Rectangle getBounds() {
+    return null; // operation not supported in Spatial Index Library
   }
 
   /**

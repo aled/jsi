@@ -23,7 +23,7 @@ package com.infomatiq.jsi;
  * an int parameter
  * 
  * @author aled.morris@infomatiq.co.uk
- * @version 1.0b1
+ * @version 1.0b2
  */
 public interface IntProcedure {
   /**

@@ -30,7 +30,7 @@ import org.apache.log4j.Logger;
  * implementations, specifically SimpleIndex and Spatial Index Library.
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b1
+ * @version 1.0b2
  */
 public class ReferenceGenerateTest extends SpatialIndexTest {
 

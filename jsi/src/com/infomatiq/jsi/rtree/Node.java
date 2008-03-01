@@ -24,7 +24,7 @@ import com.infomatiq.jsi.Rectangle;
  * <p>Used by RTree. There are no public methods in this class.</p>
  * 
  * @author aled.morris@infomatiq.co.uk
- * @version 1.0b1
+ * @version 1.0b2
  */
 public class Node {
   int nodeId = 0;
@@ -105,18 +105,18 @@ public class Node {
     }
   }
    
-  int getEntryCount() {
+  public int getEntryCount() {
     return entryCount;
   }
   
-  Rectangle getEntry(int index) {
+  public Rectangle getEntry(int index) {
     if (index < entryCount) {
       return entries[index];
     }
     return null;
   }
   
-  int getId(int index) {
+  public int getId(int index) {
     if (index < entryCount) {
       return ids[index];
     }
@@ -144,11 +144,11 @@ public class Node {
     return (level == 1);
   }
   
-  int getLevel() {
+  public int getLevel() {
     return level; 
   }
   
-  Rectangle getMBR() {
+  public Rectangle getMBR() {
     return mbr; 
   }
 }
