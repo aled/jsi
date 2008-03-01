@@ -1,6 +1,6 @@
 //   PerformanceTest.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002-2003 Infomatiq Limited.
+//   Copyright (C) 2002-2005 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@ import org.apache.log4j.Logger;
  * Index library against alternative implementations.
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b3
+ * @version 1.0b4
  */
 public class PerformanceTest extends SpatialIndexTest {
 
@@ -43,7 +43,7 @@ public class PerformanceTest extends SpatialIndexTest {
   // Tests add, intersect, nearest, nearestn, contains.
   // Can optimize for add performance, memory efficiency, or query performance.
   //
-  public void testQueryPerformance() {
+  public void xtestQueryPerformance() {
     Date currentDate = new Date();
     
     addPerformanceLog.info(currentDate);
@@ -97,12 +97,27 @@ public class PerformanceTest extends SpatialIndexTest {
 //    runScript("test.SILWrapper",   p, "allqueries-10000", PERFORMANCE_TEST);
   }
 
+  public void testNearestN() {
+    Properties p = new Properties();
+    p.setProperty("MinNodeEntries", "5");
+    p.setProperty("MaxNodeEntries", "10");
+    
+    Date currentDate = new Date();
+    nearestPerformanceLog.info(currentDate);
+    nearestPerformanceLog.info("IndexType,TestId,MinNodeEntries,MaxNodeEntries,TreeVariant,TreeSize,QueryCount,AverageNearestCount,AverageQueryTime");
+    
+    runScript("rtree.RTree",       p, "nearestN-100", PERFORMANCE_TEST);
+    runScript("rtree.RTree",       p, "nearestN-1000", PERFORMANCE_TEST);
+    runScript("rtree.RTree",       p, "nearestN-10000", PERFORMANCE_TEST);
+    
+  }
+  
   /**
    * Tests performance of all the RTree variants for add() and intersect(),
    * for up to 10,000,000 entries
    */
-  public void XtestPerformance() {
-    log.debug("testPerformance()");
+  public void XtestAllFunctions() {
+    log.debug("testAllFunctions()");
     
     Date currentDate = new Date();
     intersectPerformanceLog.info(currentDate);

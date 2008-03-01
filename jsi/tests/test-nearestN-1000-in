@@ -1,3 +1,14 @@
 randomize         1
-addRandom      1000   0 3162
-nearestNRandom 1000   5 3162
+addRandom       500   0   3162
+nearestNRandom 1000   1   3162
+nearestNRandom 1000   2   3162
+nearestNRandom 1000   8   3162
+nearestNRandom 1000   32  3162
+nearestNRandom 1000   256 3162
+
+distanceQuantizer 10000
+addRandom       500   500  3162
+nearestNRandom 1000   1    3162
+nearestNRandom 1000   2    3162
+nearestNRandom 1000   64   3162
+nearestNRandom 1000   512  3162

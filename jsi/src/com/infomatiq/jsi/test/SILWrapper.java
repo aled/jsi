@@ -1,6 +1,6 @@
 //   SILWrapper.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002-2003 Infomatiq Limited.
+//   Copyright (C) 2002-2005 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -52,7 +52,7 @@ public class SILWrapper implements SpatialIndex {
   private static final Logger log = 
     Logger.getLogger(SILWrapper.class.getName());
     
-  private static final String version = "1.0b3";
+  private static final String version = "1.0b4";
   
   private IStorageManager storageManager = null; 
   private ISpatialIndex tree = null;
@@ -127,6 +127,16 @@ public class SILWrapper implements SpatialIndex {
                               new IntProcedureVisitor(v));
   }
 
+  /**
+   * Same as nearestN
+   * 
+   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(com.infomatiq.jsi.Point, com.infomatiq.jsi.IntProcedure, int, float)
+   */
+  public void nearestNUnsorted(Point p, TIntProcedure v, int n, float furthestDistance) {
+    nearestN(p, v, n, furthestDistance);
+  }
+
+  
   /**
    * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, IntProcedure)
    */

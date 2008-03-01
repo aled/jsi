@@ -1,6 +1,6 @@
 //   RTree.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002-2003 Infomatiq Limited.
+//   Copyright (C) 2002-2005 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,7 @@
 package com.infomatiq.jsi.rtree;
 
 import gnu.trove.TIntArrayList;
+import gnu.trove.TIntFloatPriorityQueue;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TIntProcedure;
 import gnu.trove.TIntStack;
@@ -46,14 +47,18 @@ import com.infomatiq.jsi.SpatialIndex;
  * avoidance of the creation of unnecessary objects, mainly achieved by using
  * primitive collections from the trove4j library.</p>
  * 
+ * <p>WARNING: this class currently depends on com.infomatiq.util.DistanceQueue.
+ * This dependency must be removed for a standalone release. Hopefully DistanceQueue 
+ * (or something equivalent) will make it into Trove4J soon.</p>
+ * 
  * @author aled.morris@infomatiq.co.uk
- * @version 1.0b3
+ * @version 1.0b4
  */
 public class RTree implements SpatialIndex {
   private static final Logger log = Logger.getLogger(RTree.class.getName());
   private static final Logger deleteLog = Logger.getLogger(RTree.class.getName() + "-delete");
   
-  private static final String version = "1.0b3";
+  private static final String version = "1.0b4";
   
   // parameters of the tree
   private final static int DEFAULT_MAX_NODE_ENTRIES = 10;
@@ -96,9 +101,15 @@ public class RTree implements SpatialIndex {
   // List of nearest rectangles. Use a member variable to
   // avoid recreating the object each time nearest() is called.
   private TIntArrayList nearestIds = new TIntArrayList();
+  private TIntArrayList savedValues = new TIntArrayList();
+  private float savedPriority = 0;
 
   // List of nearestN rectangles
   private SortedList nearestNIds = new SortedList();
+  
+  // List of nearestN rectanges, used in the alternative nearestN implementation.
+  private TIntFloatPriorityQueue distanceQueue = 
+    new TIntFloatPriorityQueue(TIntFloatPriorityQueue.SORT_ORDER_ASCENDING);
   
   /**
    * Constructor. Use init() method to initialize parameters of the RTree.
@@ -159,7 +170,7 @@ public class RTree implements SpatialIndex {
     Node root = new Node(rootNodeId, 1, maxNodeEntries);
     nodeMap.put(rootNodeId, root);
     
-    log.info("init() " + " MaxNodeEntries = " + maxNodeEntries + ", MinNodeEntries = " + minNodeEntries);
+    log.debug("init() " + " MaxNodeEntries = " + maxNodeEntries + ", MinNodeEntries = " + minNodeEntries);
   }
   
   /**
@@ -231,10 +242,10 @@ public class RTree implements SpatialIndex {
     // to determine if it contains r. For each entry found, invoke
     // findLeaf on the node pointed to by the entry, until r is found or
     // all entries have been checked.
-  	parents.clear();
+  	parents.reset();
   	parents.push(rootNodeId);
   	
-  	parentsEntry.clear();
+  	parentsEntry.reset();
   	parentsEntry.push(-1);
   	Node n = null;
   	int foundIndex = -1;  // index of entry to be deleted in leaf
@@ -291,22 +302,169 @@ public class RTree implements SpatialIndex {
     nearest(p, rootNode, furthestDistanceSq);
    
     nearestIds.forEach(v);
-    nearestIds.clear();
+    nearestIds.reset();
   }
    
+  private void createNearestNDistanceQueue(Point p, int count, float furthestDistance) {
+    distanceQueue.reset();
+    distanceQueue.setSortOrder(TIntFloatPriorityQueue.SORT_ORDER_DESCENDING);
+    
+    //  return immediately if given an invalid "count" parameter
+    if (count <= 0) {
+      return;
+    }    
+    
+    Node rootNode = getNode(rootNodeId);  
+    
+    parents.reset();
+    parents.push(rootNodeId);
+    
+    parentsEntry.reset();
+    parentsEntry.push(-1);
+    
+    // TODO: possible shortcut here - could test for intersection with the 
+    //       MBR of the root node. If no intersection, return immediately.
+    
+    float furthestDistanceSq = furthestDistance * furthestDistance;
+    
+    while (parents.size() > 0) {
+      Node n = getNode(parents.peek());
+      int startIndex = parentsEntry.peek() + 1;
+      
+      if (!n.isLeaf()) {
+        // go through every entry in the index node to check
+        // if it could contain an entry closer than the farthest entry
+        // currently stored.
+        boolean near = false;
+        for (int i = startIndex; i < n.entryCount; i++) {
+          if (Rectangle.distanceSq(n.entriesMinX[i], n.entriesMinY[i], 
+                                 n.entriesMaxX[i], n.entriesMaxY[i], 
+                                 p.x, p.y) <= furthestDistanceSq) {
+            parents.push(n.ids[i]);
+            parentsEntry.pop();
+            parentsEntry.push(i); // this becomes the start index when the child has been searched
+            parentsEntry.push(-1);
+            near = true;
+            break; // ie go to next iteration of while()
+          }
+        }
+        if (near) {
+          continue;
+        }
+      } else {
+        // go through every entry in the leaf to check if 
+        // it is currently one of the nearest N entries.
+        for (int i = 0; i < n.entryCount; i++) {
+          float entryDistanceSq = Rectangle.distanceSq(n.entriesMinX[i], n.entriesMinY[i],
+                                                   n.entriesMaxX[i], n.entriesMaxY[i],
+                                                   p.x, p.y);
+          int entryId = n.ids[i];
+          
+          if (entryDistanceSq <= furthestDistanceSq) {
+            distanceQueue.insert(entryId, entryDistanceSq);
+            
+            while (distanceQueue.size() > count) {
+              // normal case - we can simply remove the lowest priority (highest distance) entry
+              int value = distanceQueue.getValue();
+              float distanceSq = distanceQueue.getPriority();
+              distanceQueue.pop();
+              
+              // rare case - multiple items of the same priority (distance)
+              if (distanceSq == distanceQueue.getPriority()) {
+                savedValues.add(value);
+                savedPriority = distanceSq;
+              } else {
+                savedValues.reset();
+              }
+            }
+            
+            // if the saved values have the same distance as the
+            // next one in the tree, add them back in.
+            if (savedValues.size() > 0 && savedPriority == distanceQueue.getPriority()) {
+              for (int svi = 0; svi < savedValues.size(); svi++) {
+                distanceQueue.insert(savedValues.get(svi), savedPriority);
+              }
+              savedValues.reset();
+            }
+            
+            // narrow the search, if we have already found N items
+            if (distanceQueue.getPriority() < furthestDistanceSq && distanceQueue.size() >= count) {
+              furthestDistanceSq = distanceQueue.getPriority();  
+            }
+          } 
+        }                       
+      }
+      parents.pop();
+      parentsEntry.pop();  
+    }
+  }
+  
+  /**
+   * New implementation of nearestN. Designed to give good performance
+   * where
+   *   o N is high (100+)
+   *   o The results do not need to be sorted by distance.
+   * 
+   * Uses a priority queue as the underlying data structure. 
+   * 
+   * The behaviour of this algorithm has been carefully designed to
+   * return exactly the same items as the original, in particular,
+   * more than N items will be returned if items N and N+x have the
+   * same priority.
+   */
+  public void nearestNUnsorted(Point p, TIntProcedure v, int count, float furthestDistance) {
+    createNearestNDistanceQueue(p, count, furthestDistance);
+   
+    while (distanceQueue.size() > 0) {
+      v.execute(distanceQueue.getValue());
+      distanceQueue.pop();
+    }
+  }
+  
+  /**
+   * Second alternative implementation of NearestN.
+   * 
+   * Uses the first alternative implementation, then sorts the results by
+   * ascending distance.
+   * 
+   * Would ideally like to invert the sort order in-place, but for now just
+   * create another distanceQueue, and insert all the entries again (but 
+   * negate the distance)
+   * 
+   * If it is comparable, this would allow us to replace the original nearestN
+   * implementation. Absolute speed is not an overriding requirement, as 
+   * sorting is currently only performed for small values of n.
+   */
+  public void nearestN(Point p, TIntProcedure v, int count, float furthestDistance) {
+    createNearestNDistanceQueue(p, count, furthestDistance);
+    
+    distanceQueue.setSortOrder(TIntFloatPriorityQueue.SORT_ORDER_ASCENDING);
+    
+    while (distanceQueue.size() > 0) {
+      v.execute(distanceQueue.getValue());
+      distanceQueue.pop();
+    }  
+  }
+    
   /**
    * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, TIntProcedure, int, float)
+   * @deprecated Use new NearestN or NearestNUnsorted instead.
    * 
    * This implementation of nearestN is only suitable for small values of N (ie less than 10).
    *  
    */ 
-  public void nearestN(Point p, TIntProcedure v, int count, float furthestDistance) {
+  public void nearestN_orig(Point p, TIntProcedure v, int count, float furthestDistance) {
+    // return immediately if given an invalid "count" parameter
+    if (count <= 0) {
+      return;
+    }
+    
     Node rootNode = getNode(rootNodeId);  
     
-    parents.clear();
+    parents.reset();
     parents.push(rootNodeId);
     
-    parentsEntry.clear();
+    parentsEntry.reset();
     parentsEntry.push(-1);
     
     nearestNIds.init(count);
@@ -382,10 +540,10 @@ public class RTree implements SpatialIndex {
     // find all rectangles in the tree that are contained by the passed rectangle
     // written to be non-recursive (should model other searches on this?)
         
-    parents.clear();
+    parents.reset();
     parents.push(rootNodeId);
     
-    parentsEntry.clear();
+    parentsEntry.reset();
     parentsEntry.push(-1);
     
     // TODO: possible shortcut here - could test for intersection with the 
@@ -420,7 +578,9 @@ public class RTree implements SpatialIndex {
         for (int i = 0; i < n.entryCount; i++) {
           if (Rectangle.contains(r.minX, r.minY, r.maxX, r.maxY, 
                                  n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i])) {
-            v.execute(n.ids[i]);
+            if (!v.execute(n.ids[i])) {
+              return;
+            }
           } 
         }                       
       }
@@ -685,9 +845,9 @@ public class RTree implements SpatialIndex {
       }
       
       if (log.isDebugEnabled()) {
-              log.debug("Entry " + i + ", dimension Y: HighestLow = " + tempHighestLow + 
-                        " (index " + tempHighestLowIndex + ")" + ", LowestHigh = " +
-                        tempLowestHigh + " (index " + tempLowestHighIndex + ", NormalizedSeparation = " + normalizedSeparation);
+        log.debug("Entry " + i + ", dimension Y: HighestLow = " + tempHighestLow + 
+                  " (index " + tempHighestLowIndex + ")" + ", LowestHigh = " +
+                  tempLowestHigh + " (index " + tempLowestHighIndex + ", NormalizedSeparation = " + normalizedSeparation);
       }
           
       // PS3 [Select the most extreme pair] Choose the pair with the greatest
@@ -822,7 +982,7 @@ public class RTree implements SpatialIndex {
       if (n.isLeaf()) { // for leaves, the distance is an actual nearest distance 
         if (tempDistanceSq < furthestDistanceSq) {
           furthestDistanceSq = tempDistanceSq;
-          nearestIds.clear();
+          nearestIds.reset();
         }
         if (tempDistanceSq <= furthestDistanceSq) {
           nearestIds.add(n.ids[i]);
@@ -846,17 +1006,22 @@ public class RTree implements SpatialIndex {
    * TODO rewrite this to be non-recursive? Make sure it
    * doesn't slow it down.
    */
-  private void intersects(Rectangle r, TIntProcedure v, Node n) {
+  private boolean intersects(Rectangle r, TIntProcedure v, Node n) {
     for (int i = 0; i < n.entryCount; i++) {
       if (Rectangle.intersects(r.minX, r.minY, r.maxX, r.maxY, n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i])) {
         if (n.isLeaf()) {
-          v.execute(n.ids[i]);
+          if (!v.execute(n.ids[i])) {
+            return false;
+          }
         } else {
           Node childNode = getNode(n.ids[i]);
-          intersects(r, v, childNode);
+          if (!intersects(r, v, childNode)) {
+            return false;
+          }
         }
       }
     }
+    return true;
   }
 
   /**
@@ -930,8 +1095,8 @@ public class RTree implements SpatialIndex {
   private Node chooseNode(float minX, float minY, float maxX, float maxY, int level) {
     // CL1 [Initialize] Set N to be the root node
     Node n = getNode(rootNodeId);
-    parents.clear();
-    parentsEntry.clear();
+    parents.reset();
+    parentsEntry.reset();
      
     // CL2 [Leaf check] If N is a leaf, return N
     while (true) {
