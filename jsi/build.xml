@@ -2,10 +2,20 @@
 
 <!-- ANT script to build JSI -->
 
+<!-- 
+
+ For some reason, Eclipse ANT support does not work out-of-the-box.
+ To avoid the error "cannot find javac", I use the following argument: 
+
+   -Dbuild.compiler=org.eclipse.jdt.core.JDTCompilerAdapter 
+
+-->
+
+
 <project name="JSI build" default="help" basedir="..">
 
   <!-- version number -->
-  <property name="version" value="1.0b2"/>
+  <property name="version" value="1.0b3"/>
  
   <!-- library includes -->
   <property name="lib.dir" value="${basedir}/jsi/lib"/>
@@ -14,8 +24,8 @@
     <fileset dir="${lib.dir}">
       <include name="log4j-1.2.6.jar"/>
       <include name="junit-3.7.0.jar"/>
-      <include name="trove-0.1.8.jar"/>
-      <include name="sil-0.43b-am1.jar"/>
+      <include name="trove-1.0.2.jar"/>
+      <include name="sil-0.44.2b.jar"/>
     </fileset>
   </path>
 

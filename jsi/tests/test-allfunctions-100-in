@@ -1,45 +1,36 @@
 randomize         1
-addRandom        40 0 100
+addRandom        40     0 20000
 randomize         1
-deleteRandom     20 0 100
+deleteRandom     20     0 20000
 #
 randomize         2
-addRandom        40 40 200
+addRandom        40    40 20000
 randomize         2
-deleteRandom     20 40 200
+deleteRandom     20    40 20000
 #
 randomize         3
-addRandom        40 80 400
+addRandom        40    80 20000
 randomize         3
-deleteRandom     20 80 400
+deleteRandom     20    80 20000
 #
 randomize         4
-addRandom        40 120 800
+addRandom        40   120 20000
 randomize         4
-deleteRandom     20 120 800
+deleteRandom     20   120 20000
 #
 randomize         5
-addRandom        40 160 1600
+addRandom        40   160 20000
 randomize         5
-deleteRandom     20 160 1600
+deleteRandom     20   160 20000
 #
 randomize         6
-intersectRandom  20   100
-intersectRandom  20   200
-intersectRandom  20   400
-intersectRandom  20   800
-intersectRandom  20   1600
+intersectRandom 100 20000
 #
 randomize         7
-nearestRandom    20   100
-nearestRandom    20   200
-nearestRandom    20   400
-nearestRandom    20   800
-nearestRandom    20   1600
+nearestRandom   100
 #
 randomize         8
-containsRandom   20   100
-containsRandom   20   200
-containsRandom   20   400
-containsRandom   20   800
-containsRandom   20   1600
+nearestNRandom  100     5 
+#
+randomize         9
+containsRandom   100 100000

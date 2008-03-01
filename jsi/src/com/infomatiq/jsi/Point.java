@@ -1,6 +1,6 @@
 //   Point.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002 Infomatiq Limited
+//   Copyright (C) 2002-2003 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -22,19 +22,13 @@ package com.infomatiq.jsi;
  * Currently hardcoded to 2 dimensions, but could be extended.
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b2
+ * @version 1.0b3
  */
 public class Point {
   /**
-   * Number of dimensions in a point. In theory this
-   * could be exended to three or more dimensions.
-   */
-  private final static int DIMENSIONS = 2;
-  
-  /**
    * The (x, y) coordinates of the point.
    */
-  public float[] coordinates;
+  public float x, y;
   
   /**
    * Constructor.
@@ -43,8 +37,7 @@ public class Point {
    * @param y The y coordinate of the point
    */
   public Point(float x, float y) {
-    coordinates = new float[DIMENSIONS];
-    coordinates[0] = x; 
-    coordinates[1] = y;
+    this.x = x; 
+    this.y = y;
   }
 }

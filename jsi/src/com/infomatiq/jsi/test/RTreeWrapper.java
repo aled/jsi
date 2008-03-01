@@ -1,6 +1,6 @@
 //   RTreeWrapper.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002 Infomatiq Limited
+//   Copyright (C) 2002-2003 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -18,9 +18,9 @@
 
 package com.infomatiq.jsi.test;
 
+import gnu.trove.TIntProcedure;
 import java.util.Properties;
 
-import com.infomatiq.jsi.IntProcedure;
 import com.infomatiq.jsi.Point;
 import com.infomatiq.jsi.Rectangle;
 import com.infomatiq.jsi.SpatialIndex;
@@ -37,14 +37,14 @@ import com.infomatiq.jsi.rtree.RTree;
  * @version $Revision$
  */
 public class RTreeWrapper implements SpatialIndex {
-  private static final String version = "1.0b2";
+  private static final String version = "1.0b3";
   
   private RTree tree;
   
-  class IntProcedure2 implements IntProcedure {
-    private IntProcedure m_intProcedure = null;
+  class IntProcedure2 implements TIntProcedure {
+    private TIntProcedure m_intProcedure = null;
     
-    public IntProcedure2(IntProcedure ip) {
+    public IntProcedure2(TIntProcedure ip) {
       m_intProcedure = ip;
     }
     
@@ -66,31 +66,42 @@ public class RTreeWrapper implements SpatialIndex {
   /**
    * @see com.infomatiq.jsi.SpatialIndex#nearest(Rectangle, IntProcedure, float)
    */
-  public void nearest(Point p , IntProcedure ip, float furthestDistance) {
-    tree.nearest(new Point(p.coordinates[0], p.coordinates[1]),
-                 new IntProcedure2(ip),
+  public void nearest(Point p, TIntProcedure v, float furthestDistance) {
+    tree.nearest(new Point(p.x, p.y),
+                 new IntProcedure2(v),
                  Float.POSITIVE_INFINITY);
+  }
+  
+  /**
+   * @see com.infomatiq.jsi.SpatialIndex#nearestN(com.infomatiq.jsi.Point, com.infomatiq.jsi.IntProcedure, int, float)
+   */
+  public void nearestN(Point p, TIntProcedure v, int n, float furthestDistance) {
+    tree.nearest(new Point(p.x, p.y),
+                 new IntProcedure2(v),
+                 furthestDistance);
   }
 
   /**
    * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, IntProcedure)
    */
-  public void intersects(Rectangle r, IntProcedure ip) {
-    Rectangle r2 = new Rectangle(r.min, r.max);  
+  public void intersects(Rectangle r, TIntProcedure ip) {
+    Rectangle r2 = new Rectangle(r.minX, r.minY, r.maxX, r.maxY);  
     tree.intersects(r2, new IntProcedure2(ip));
   }
 
   /**
    * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, IntProcedure)
    */
-  public void contains(Rectangle r, IntProcedure ip) {
+  public void contains(Rectangle r, TIntProcedure ip) {
+    Rectangle r2 = new Rectangle(r.minX, r.minY, r.maxX, r.maxY);
+    tree.contains(r2, new IntProcedure2(ip));
   }
 
   /**
    * @see com.infomatiq.jsi.SpatialIndex#add(Rectangle, int)
    */
   public void add(Rectangle r, int id) {
-    Rectangle r2 = new Rectangle(r.min, r.max);
+    Rectangle r2 = new Rectangle(r.minX, r.minY, r.maxX, r.maxY);
     tree.add(r2, id);
   }
 
@@ -98,7 +109,7 @@ public class RTreeWrapper implements SpatialIndex {
    * @see com.infomatiq.jsi.SpatialIndex#delete(Rectangle, int)
    */
   public boolean delete(Rectangle r, int id) {
-    Rectangle r2 = new Rectangle(r.min, r.max);
+    Rectangle r2 = new Rectangle(r.minX, r.minY, r.maxX, r.maxY);
     return tree.delete(r2, id);
   }
 

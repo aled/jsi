@@ -1,6 +1,6 @@
 //   SpatialIndexTest.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002 Infomatiq Limited
+//   Copyright (C) 2002-2003 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ import com.infomatiq.jsi.SpatialIndex;
  * SpatialIndexTest
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b2
+ * @version 1.0b3
  */
 public class SpatialIndexTest extends TestCase {
   
@@ -63,6 +63,9 @@ public class SpatialIndexTest extends TestCase {
   protected static final Logger nearestPerformanceLog = 
     Logger.getLogger("nearestPerformance");
     
+  protected static final Logger nearestNPerformanceLog = 
+    Logger.getLogger("nearestNPerformance");
+    
   protected static final Logger addPerformanceLog = 
     Logger.getLogger("addPerformance");
   
@@ -74,6 +77,8 @@ public class SpatialIndexTest extends TestCase {
   protected static final int REFERENCE_GENERATE = 2;
   
   private DecimalFormat decimalFormat0000 = new DecimalFormat("0000");
+  
+  private float canvasSize = 100000F;
   
   public SpatialIndexTest(String s) {
     super(s);
@@ -97,11 +102,11 @@ public class SpatialIndexTest extends TestCase {
     }  
   }
   
-  private Rectangle getRandomRectangle(Random r, float scale) {
-    float x1 = (float) (r.nextGaussian() * scale);
-    float y1 = (float) (r.nextGaussian() * scale);
-    float x2 = x1 + (float) (r.nextGaussian() * 100);
-    float y2 = y1 + (float) (r.nextGaussian() * 100);
+  private Rectangle getRandomRectangle(Random r, float rectangleSize, float canvasSize) {
+    float x1 = (float) (r.nextGaussian() * canvasSize);
+    float y1 = (float) (r.nextGaussian() * canvasSize);
+    float x2 = x1 + (float) (r.nextGaussian() * rectangleSize);
+    float y2 = y1 + (float) (r.nextGaussian() * rectangleSize);
     
     return new Rectangle(x1, y1, x2, y2);
   }
@@ -213,7 +218,7 @@ public class SpatialIndexTest extends TestCase {
           } else if (operation.equals("ADDRANDOM")) {
             int count = Integer.parseInt(st.nextToken());
             int startId = Integer.parseInt(st.nextToken());
-            float scale = Float.parseFloat(st.nextToken());
+            float rectangleSize = Float.parseFloat(st.nextToken());
             
             if (testType == REFERENCE_COMPARISON_TEST || testType == REFERENCE_GENERATE) {
               writeOutput(outputBuffer.toString(), outputFile, referenceFile);
@@ -222,7 +227,7 @@ public class SpatialIndexTest extends TestCase {
             long startTime = System.currentTimeMillis();
                
             for (int id = startId; id < startId + count; id++) {
-              Rectangle r = getRandomRectangle(random, scale);
+              Rectangle r = getRandomRectangle(random, rectangleSize, canvasSize);
               si.add(r, id);
             
               if (testType == REFERENCE_COMPARISON_TEST || testType == REFERENCE_GENERATE) {
@@ -247,7 +252,7 @@ public class SpatialIndexTest extends TestCase {
           } else if (operation.equals("DELETERANDOM")) {
             int count = Integer.parseInt(st.nextToken());
             int startId = Integer.parseInt(st.nextToken());
-            float scale = Float.parseFloat(st.nextToken());
+            float rectangleSize = Float.parseFloat(st.nextToken());
             
             if (testType == REFERENCE_COMPARISON_TEST || testType == REFERENCE_GENERATE) {
               writeOutput(outputBuffer.toString(), outputFile, referenceFile);
@@ -257,7 +262,7 @@ public class SpatialIndexTest extends TestCase {
             
             int successfulDeleteCount = 0;   
             for (int id = startId; id < startId + count; id++) {
-              Rectangle r = getRandomRectangle(random, scale);
+              Rectangle r = getRandomRectangle(random, rectangleSize, canvasSize);
               boolean deleted = si.delete(r, id);
              
               if (deleted) {
@@ -286,7 +291,6 @@ public class SpatialIndexTest extends TestCase {
           } 
           else if (operation.equals("NEARESTRANDOM")) {
             int queryCount = Integer.parseInt(st.nextToken());
-            float scale = Float.parseFloat(st.nextToken());
             
             if (testType == REFERENCE_COMPARISON_TEST || testType == REFERENCE_GENERATE) {
               writeOutput(outputBuffer.toString(), outputFile, referenceFile);
@@ -296,8 +300,8 @@ public class SpatialIndexTest extends TestCase {
             int totalEntriesReturned = 0;
             
             for (int id = 0; id < queryCount; id++) {
-              float x = (float) random.nextGaussian() * scale;
-              float y = (float) random.nextGaussian() * scale;
+              float x = (float) random.nextGaussian() * canvasSize;
+              float y = (float) random.nextGaussian() * canvasSize;
               
               List l = ld.nearest(new Point(x, y), Float.POSITIVE_INFINITY);
               totalEntriesReturned += l.size();
@@ -330,10 +334,55 @@ public class SpatialIndexTest extends TestCase {
                                             (float) totalEntriesReturned / (float) queryCount + "," +
                                             (float) time / (float) queryCount);
             }
-          }
-          else if (operation.equals("INTERSECTRANDOM")) {
+          } else if (operation.equals("NEARESTNRANDOM")) {
             int queryCount = Integer.parseInt(st.nextToken());
-            float scale = Float.parseFloat(st.nextToken());
+            int n = Integer.parseInt(st.nextToken());
+            
+            if (testType == REFERENCE_COMPARISON_TEST || testType == REFERENCE_GENERATE) {
+              writeOutput(outputBuffer.toString(), outputFile, referenceFile);
+            }
+  
+            long startTime = System.currentTimeMillis();
+            int totalEntriesReturned = 0;
+            
+            for (int id = 0; id < queryCount; id++) {
+              float x = (float) random.nextGaussian() * canvasSize;
+              float y = (float) random.nextGaussian() * canvasSize;
+              
+              List l = ld.nearestN(new Point(x, y), n, Float.POSITIVE_INFINITY);
+              totalEntriesReturned += l.size();
+              
+              if (testType == REFERENCE_COMPARISON_TEST || testType == REFERENCE_GENERATE) {
+                StringBuffer tempBuffer = new StringBuffer("  " + id + " " + 
+                                                     df.format(x) + " " +
+                                                     df.format(y) + " : OK");
+  
+                Iterator i = l.iterator();
+                while (i.hasNext()) {
+                  tempBuffer.append(' ');
+                  tempBuffer.append((Integer)i.next()).toString();
+                }
+                writeOutput(tempBuffer.toString(), outputFile, referenceFile);
+              }
+            } 
+            long time = System.currentTimeMillis() - startTime;
+            if (log.isDebugEnabled()) {
+              log.debug("NearestNQueried " + queryCount + " times in " + time +  "ms. Per query: " + time / (float) queryCount + " ms, " + (totalEntriesReturned / (float) queryCount) + " entries");
+            }
+            if (testType == PERFORMANCE_TEST) {
+               nearestNPerformanceLog.info(indexType + "," + 
+                                            testId + "," + 
+                                            indexProperties.getProperty("MinNodeEntries") + "," + 
+                                            indexProperties.getProperty("MaxNodeEntries") + "," + 
+                                            indexProperties.getProperty("TreeVariant") + "," +
+                                            si.size() + "," + 
+                                            queryCount + "," + 
+                                            (float) totalEntriesReturned / (float) queryCount + "," +
+                                            (float) time / (float) queryCount);
+            }
+          } else if (operation.equals("INTERSECTRANDOM")) {
+            int queryCount = Integer.parseInt(st.nextToken());
+            float rectangleSize = Float.parseFloat(st.nextToken());
             
             if (testType == REFERENCE_COMPARISON_TEST || testType == REFERENCE_GENERATE) {
               writeOutput(outputBuffer.toString(), outputFile, referenceFile);
@@ -343,7 +392,7 @@ public class SpatialIndexTest extends TestCase {
             int totalEntriesReturned = 0;
             
             for (int id = 0; id < queryCount; id++) {
-              Rectangle r = getRandomRectangle(random, scale);
+              Rectangle r = getRandomRectangle(random, rectangleSize, canvasSize);
               List l = ld.intersects(r);
               totalEntriesReturned += l.size();
               
@@ -376,7 +425,7 @@ public class SpatialIndexTest extends TestCase {
           } 
           else if (operation.equals("CONTAINSRANDOM")) {
             int queryCount = Integer.parseInt(st.nextToken());
-            float scale = Float.parseFloat(st.nextToken());
+            float rectangleSize = Float.parseFloat(st.nextToken());
             
             if (testType == REFERENCE_COMPARISON_TEST || testType == REFERENCE_GENERATE) {
               writeOutput(outputBuffer.toString(), outputFile, referenceFile);
@@ -386,7 +435,7 @@ public class SpatialIndexTest extends TestCase {
             int totalEntriesReturned = 0;
             
             for (int id = 0; id < queryCount; id++) {
-              Rectangle r = getRandomRectangle(random, scale);
+              Rectangle r = getRandomRectangle(random, rectangleSize, canvasSize);
               List l = ld.contains(r);
               totalEntriesReturned += l.size();
               

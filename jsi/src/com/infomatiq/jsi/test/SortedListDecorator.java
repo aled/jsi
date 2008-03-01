@@ -1,6 +1,6 @@
 //   SortedListDecorator.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002 Infomatiq Limited
+//   Copyright (C) 2002-2003 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -29,7 +29,7 @@ import com.infomatiq.jsi.SpatialIndex;
  * SortedListDecorator
  * 
  * @author aled.morris@infomatiq.co.uk
- * @version 1.0b2
+ * @version 1.0b3
  */
 public class SortedListDecorator extends ListDecorator {
    
@@ -40,6 +40,10 @@ public class SortedListDecorator extends ListDecorator {
   private List sort(List l) {
     Collections.sort(l);
    	return l;
+  }
+  
+  public List nearestN(Point p, int maxCount, float furthestDistance) {
+    return sort(super.nearestN(p, maxCount, furthestDistance));
   }
    
   public List nearest(Point p, float furthestDistance) {

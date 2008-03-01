@@ -1,0 +1,18 @@
+randomize        1
+addRandom        10000 0 5000
+
+randomize        2
+#intersectRandom  10000   5000
+
+randomize        3
+nearestRandom    10000   10
+
+randomize        4
+#nearestNRandom   10000   5    6000
+
+randomize        5
+#containsRandom   10000   15000
+
+# deletion test - delete all of the entries
+randomize        1
+#deleteRandom     10000 0 5000

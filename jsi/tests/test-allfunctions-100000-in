@@ -39,7 +39,14 @@ nearestRandom    20000   400
 nearestRandom    20000   800
 nearestRandom    20000   1600
 #
-randomize         8
+randomize        8
+nearestNRandom   20000   100000
+nearestNRandom   20000   200000
+nearestNRandom   20000   400000
+nearestNRandom   20000   800000
+nearestNRandom   20000   1600000
+#
+randomize        9
 containsRandom   20000   100
 containsRandom   20000   200
 containsRandom   20000   400

@@ -1,6 +1,6 @@
 //   RTree.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002 Infomatiq Limited
+//   Copyright (C) 2002-2003 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -22,11 +22,11 @@ import gnu.trove.TIntArrayList;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TIntProcedure;
 import gnu.trove.TIntStack;
+
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
-import com.infomatiq.jsi.IntProcedure;
 import com.infomatiq.jsi.Point;
 import com.infomatiq.jsi.Rectangle;
 import com.infomatiq.jsi.SpatialIndex;
@@ -47,13 +47,13 @@ import com.infomatiq.jsi.SpatialIndex;
  * primitive collections from the trove4j library.</p>
  * 
  * @author aled.morris@infomatiq.co.uk
- * @version 1.0b2
+ * @version 1.0b3
  */
 public class RTree implements SpatialIndex {
   private static final Logger log = Logger.getLogger(RTree.class.getName());
   private static final Logger deleteLog = Logger.getLogger(RTree.class.getName() + "-delete");
   
-  private static final String version = "1.0b2";
+  private static final String version = "1.0b3";
   
   // parameters of the tree
   private final static int DEFAULT_MAX_NODE_ENTRIES = 10;
@@ -61,7 +61,7 @@ public class RTree implements SpatialIndex {
   int minNodeEntries;
   
   // map of nodeId -> node object
-  // [x] TODO eliminate this map - it should not be needed. Nodes
+  // TODO eliminate this map - it should not be needed. Nodes
   // can be found by traversing the tree.
   private TIntObjectHashMap nodeMap = new TIntObjectHashMap();
   
@@ -96,26 +96,9 @@ public class RTree implements SpatialIndex {
   // List of nearest rectangles. Use a member variable to
   // avoid recreating the object each time nearest() is called.
   private TIntArrayList nearestIds = new TIntArrayList();
-  
-  // Inner class used as a bridge between the trove4j TIntProcedure
-  // and the SpatialIndex IntProcedure. This is used because 
-  // the nearest rectangles must be stored as they are found, in
-  // case a closer one is found later. 
-  // 
-  // A single instance of this class is used to avoid creating a new 
-  // one every time nearest() is called.
-  private class TIntProcedureVisit implements TIntProcedure {
-  	public IntProcedure m_intProcedure = null;
-  	
-  	public void setProcedure(IntProcedure ip) {
-  	  m_intProcedure = ip;
-  	}
-  	public boolean execute(int i) {
-  	  m_intProcedure.execute(i);
-  	  return true;
-  	}
-  }; 
-  private TIntProcedureVisit visitProc = new TIntProcedureVisit();
+
+  // List of nearestN rectangles
+  private SortedList nearestNIds = new SortedList();
   
   /**
    * Constructor. Use init() method to initialize parameters of the RTree.
@@ -129,9 +112,9 @@ public class RTree implements SpatialIndex {
   //  init(Properties)
   //  add(Rectangle, int)
   //  delete(Rectangle, int)
-  //  nearest(Point, IntProcedure, float)
-  //  intersects(Rectangle, IntProcedure)
-  //  contains(Rectangle, IntProcedure)
+  //  nearest(Point, TIntProcedure, float)
+  //  intersects(Rectangle, TIntProcedure)
+  //  contains(Rectangle, TIntProcedure)
   //  size()
   //-------------------------------------------------------------------------
   /**
@@ -187,27 +170,31 @@ public class RTree implements SpatialIndex {
       log.debug("Adding rectangle " + r + ", id " + id);
     }
     
-    add(r.copy(), id, 1); 
+    add(r.minX, r.minY, r.maxX, r.maxY, id, 1); 
     
-    size++; 
+    size++;
+    
+    if (INTERNAL_CONSISTENCY_CHECKING) {
+      checkConsistency(rootNodeId, treeHeight, null);
+    }
   }
   
   /**
    * Adds a new entry at a specified level in the tree
    */
-  private void add(Rectangle r, int id, int level) {
+  private void add(float minX, float minY, float maxX, float maxY, int id, int level) {
     // I1 [Find position for new record] Invoke ChooseLeaf to select a 
     // leaf node L in which to place r
-    Node n = chooseNode(r, level);
+    Node n = chooseNode(minX, minY, maxX, maxY, level);
     Node newLeaf = null;
     
     // I2 [Add record to leaf node] If L has room for another entry, 
     // install E. Otherwise invoke SplitNode to obtain L and LL containing
     // E and all the old entries of L
     if (n.entryCount < maxNodeEntries) {
-      n.addEntryNoCopy(r, id);
+      n.addEntry(minX, minY, maxX, maxY, id);
     } else {
-      newLeaf = splitNode(n, r, id);  
+      newLeaf = splitNode(n, minX, minY, maxX, maxY, id);  
     }
     
     // I3 [Propagate changes upwards] Invoke AdjustTree on L, also passing LL
@@ -223,14 +210,10 @@ public class RTree implements SpatialIndex {
       rootNodeId = getNextNodeId();
       treeHeight++;
       Node root = new Node(rootNodeId, treeHeight, maxNodeEntries);
-      root.addEntry(newNode.mbr, newNode.nodeId);
-      root.addEntry(oldRoot.mbr, oldRoot.nodeId);
+      root.addEntry(newNode.mbrMinX, newNode.mbrMinY, newNode.mbrMaxX, newNode.mbrMaxY, newNode.nodeId);
+      root.addEntry(oldRoot.mbrMinX, oldRoot.mbrMinY, oldRoot.mbrMaxX, oldRoot.mbrMaxY, oldRoot.nodeId);
       nodeMap.put(rootNodeId, root);
-    }
-    
-    if (INTERNAL_CONSISTENCY_CHECKING) {
-      checkConsistency(rootNodeId, treeHeight, null);
-    }
+    }    
   } 
   
   /**
@@ -264,7 +247,8 @@ public class RTree implements SpatialIndex {
         deleteLog.debug("searching node " + n.nodeId + ", from index " + startIndex);
 	  	  boolean contains = false;
         for (int i = startIndex; i < n.entryCount; i++) {
-	  	    if (n.entries[i].contains(r)) {
+	  	    if (Rectangle.contains(n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i],
+                                 r.minX, r.minY, r.maxX, r.maxY)) { 
 	  	      parents.push(n.ids[i]);
 	  	      parentsEntry.pop();
 	  	      parentsEntry.push(i); // this becomes the start index when the child has been searched
@@ -277,7 +261,7 @@ public class RTree implements SpatialIndex {
           continue;
         }
       } else {
-        foundIndex = n.findEntry(r, id);        
+        foundIndex = n.findEntry(r.minX, r.minY, r.maxX, r.maxY, id);        
       }
       
       parents.pop();
@@ -290,34 +274,111 @@ public class RTree implements SpatialIndex {
       size--;
   	}
     
+    if (INTERNAL_CONSISTENCY_CHECKING) {
+      checkConsistency(rootNodeId, treeHeight, null);
+    }
+        
     return (foundIndex != -1);
   }
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point, IntProcedure, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point, TIntProcedure, float)
    */
-  public void nearest(Point p, IntProcedure v, float furthestDistance) {
+  public void nearest(Point p, TIntProcedure v, float furthestDistance) {
     Node rootNode = getNode(rootNodeId);
    
-    nearest(p, rootNode, furthestDistance);
+    float furthestDistanceSq = furthestDistance * furthestDistance;
+    nearest(p, rootNode, furthestDistanceSq);
    
-    visitProc.setProcedure(v);
-    nearestIds.forEach(visitProc);
+    nearestIds.forEach(v);
     nearestIds.clear();
   }
    
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, IntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, TIntProcedure, int, float)
+   * 
+   * This implementation of nearestN is only suitable for small values of N (ie less than 10).
+   *  
+   */ 
+  public void nearestN(Point p, TIntProcedure v, int count, float furthestDistance) {
+    Node rootNode = getNode(rootNodeId);  
+    
+    parents.clear();
+    parents.push(rootNodeId);
+    
+    parentsEntry.clear();
+    parentsEntry.push(-1);
+    
+    nearestNIds.init(count);
+    
+    // TODO: possible shortcut here - could test for intersection with the 
+    //       MBR of the root node. If no intersection, return immediately.
+    
+    float furthestDistanceSq = furthestDistance * furthestDistance;
+    
+    while (parents.size() > 0) {
+      Node n = getNode(parents.peek());
+      int startIndex = parentsEntry.peek() + 1;
+      
+      if (!n.isLeaf()) {
+        // go through every entry in the index node to check
+        // if it could contain an entry closer than the farthest entry
+        // currently stored.
+        boolean near = false;
+        for (int i = startIndex; i < n.entryCount; i++) {
+          if (Rectangle.distanceSq(n.entriesMinX[i], n.entriesMinY[i], 
+                                 n.entriesMaxX[i], n.entriesMaxY[i], 
+                                 p.x, p.y) <= furthestDistanceSq) {
+            parents.push(n.ids[i]);
+            parentsEntry.pop();
+            parentsEntry.push(i); // this becomes the start index when the child has been searched
+            parentsEntry.push(-1);
+            near = true;
+            break; // ie go to next iteration of while()
+          }
+        }
+        if (near) {
+          continue;
+        }
+      } else {
+        // go through every entry in the leaf to check if 
+        // it is currently one of the nearest N entries.
+        for (int i = 0; i < n.entryCount; i++) {
+          float entryDistanceSq = Rectangle.distanceSq(n.entriesMinX[i], n.entriesMinY[i],
+                                                   n.entriesMaxX[i], n.entriesMaxY[i],
+                                                   p.x, p.y);
+          int entryId = n.ids[i];
+          
+          if (entryDistanceSq <= furthestDistanceSq) {
+            // add the new entry to the tree. Note that the higher the distance, the lower the priority
+            nearestNIds.add(entryId, -entryDistanceSq);
+            
+            float tempFurthestDistanceSq = -nearestNIds.getLowestPriority();
+            if (tempFurthestDistanceSq < furthestDistanceSq) {
+              furthestDistanceSq = tempFurthestDistanceSq;  
+            }
+          } 
+        }                       
+      }
+      parents.pop();
+      parentsEntry.pop();  
+    }
+   
+    nearestNIds.forEachId(v);
+  }
+   
+  /**
+   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, TIntProcedure)
    */
-  public void intersects(Rectangle r, IntProcedure v) {
+  public void intersects(Rectangle r, TIntProcedure v) {
     Node rootNode = getNode(rootNodeId);
     intersects(r, v, rootNode);
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, IntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, TIntProcedure)
    */
-  public void contains(Rectangle r, IntProcedure v) {
+  public void contains(Rectangle r, TIntProcedure v) {
     // find all rectangles in the tree that are contained by the passed rectangle
     // written to be non-recursive (should model other searches on this?)
         
@@ -340,7 +401,8 @@ public class RTree implements SpatialIndex {
         // could contain entries that are contained.
         boolean intersects = false;
         for (int i = startIndex; i < n.entryCount; i++) {
-          if (r.intersects(n.entries[i])) {
+          if (Rectangle.intersects(r.minX, r.minY, r.maxX, r.maxY, 
+                                   n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i])) {
             parents.push(n.ids[i]);
             parentsEntry.pop();
             parentsEntry.push(i); // this becomes the start index when the child has been searched
@@ -356,7 +418,8 @@ public class RTree implements SpatialIndex {
         // go through every entry in the leaf to check if 
         // it is contained by the passed rectangle
         for (int i = 0; i < n.entryCount; i++) {
-          if (r.contains(n.entries[i])) {
+          if (Rectangle.contains(r.minX, r.minY, r.maxX, r.maxY, 
+                                 n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i])) {
             v.execute(n.ids[i]);
           } 
         }                       
@@ -380,8 +443,8 @@ public class RTree implements SpatialIndex {
     Rectangle bounds = null;
     
     Node n = getNode(getRootNodeId());
-    if (n != null && n.getMBR() != null) {
-      bounds = n.getMBR().copy();
+    if (n != null && n.entryCount > 0) {
+      bounds = new Rectangle(n.mbrMinX, n.mbrMinY, n.mbrMaxX, n.mbrMaxY);
     }
     return bounds;
   }
@@ -437,7 +500,7 @@ public class RTree implements SpatialIndex {
    * 
    * @return new node object.
    */
-  private Node splitNode(Node n, Rectangle newRect, int newId) {
+  private Node splitNode(Node n, float newRectMinX, float newRectMinY, float newRectMaxX, float newRectMaxY, int newId) {
     // [Pick first entry for each group] Apply algorithm pickSeeds to 
     // choose two entries to be the first elements of the groups. Assign
     // each to a group.
@@ -445,8 +508,12 @@ public class RTree implements SpatialIndex {
     // debug code
     float initialArea = 0;
     if (log.isDebugEnabled()) {
-      Rectangle union = n.mbr.union(newRect);
-      initialArea = union.area();
+      float unionMinX = Math.min(n.mbrMinX, newRectMinX);
+      float unionMinY = Math.min(n.mbrMinY, newRectMinY);
+      float unionMaxX = Math.max(n.mbrMaxX, newRectMaxX);
+      float unionMaxY = Math.max(n.mbrMaxY, newRectMaxY);
+      
+      initialArea = (unionMaxX - unionMinX) * (unionMaxY - unionMinY);
     }
        
     System.arraycopy(initialEntryStatus, 0, entryStatus, 0, maxNodeEntries);
@@ -455,7 +522,7 @@ public class RTree implements SpatialIndex {
     newNode = new Node(getNextNodeId(), n.level, maxNodeEntries);
     nodeMap.put(newNode.nodeId, newNode);
     
-    pickSeeds(n, newRect, newId, newNode); // this also sets the entryCount to 1
+    pickSeeds(n, newRectMinX, newRectMinY, newRectMaxX, newRectMaxY, newId, newNode); // this also sets the entryCount to 1
     
     // [Check if done] If all entries have been assigned, stop. If one
     // group has so few entries that all the rest must be assigned to it in 
@@ -466,7 +533,12 @@ public class RTree implements SpatialIndex {
         for (int i = 0; i < maxNodeEntries; i++) {
           if (entryStatus[i] == ENTRY_STATUS_UNASSIGNED) {
             entryStatus[i] = ENTRY_STATUS_ASSIGNED;
-            n.mbr.add(n.entries[i]);
+            
+            if (n.entriesMinX[i] < n.mbrMinX) n.mbrMinX = n.entriesMinX[i];
+            if (n.entriesMinY[i] < n.mbrMinY) n.mbrMinY = n.entriesMinY[i];
+            if (n.entriesMaxX[i] > n.mbrMaxX) n.mbrMaxX = n.entriesMaxX[i];
+            if (n.entriesMaxY[i] > n.mbrMaxY) n.mbrMaxY = n.entriesMaxY[i];
+            
             n.entryCount++;
           }
         }
@@ -477,8 +549,8 @@ public class RTree implements SpatialIndex {
         for (int i = 0; i < maxNodeEntries; i++) {
           if (entryStatus[i] == ENTRY_STATUS_UNASSIGNED) {
             entryStatus[i] = ENTRY_STATUS_ASSIGNED;
-            newNode.addEntryNoCopy(n.entries[i], n.ids[i]);
-            n.entries[i] = null;
+            newNode.addEntry(n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i], n.ids[i]);
+            n.ids[i] = -1; // an id of -1 indicates the entry is not in use
           }
         }
         break;
@@ -496,18 +568,20 @@ public class RTree implements SpatialIndex {
     
     // check that the MBR stored for each node is correct.
     if (INTERNAL_CONSISTENCY_CHECKING) {
-      if (!n.mbr.equals(calculateMBR(n))) {
+      Rectangle nMBR = new Rectangle(n.mbrMinX, n.mbrMinY, n.mbrMaxX, n.mbrMaxY);
+      if (!nMBR.equals(calculateMBR(n))) {
         log.error("Error: splitNode old node MBR wrong");
       }
-      
-      if (!newNode.mbr.equals(calculateMBR(newNode))) {
+      Rectangle newNodeMBR = new Rectangle(newNode.mbrMinX, newNode.mbrMinY, newNode.mbrMaxX, newNode.mbrMaxY);
+      if (!newNodeMBR.equals(calculateMBR(newNode))) {
         log.error("Error: splitNode new node MBR wrong");
       }
     }
     
     // debug code
     if (log.isDebugEnabled()) {
-      float newArea = n.mbr.area() + newNode.mbr.area();
+      float newArea = Rectangle.area(n.mbrMinX, n.mbrMinY, n.mbrMaxX, n.mbrMaxY) + 
+                      Rectangle.area(newNode.mbrMinX, newNode.mbrMinY, newNode.mbrMaxX, newNode.mbrMaxY);
       float percentageIncrease = (100 * (newArea - initialArea)) / initialArea;
       log.debug("Node " + n.nodeId + " split. New area increased by " + percentageIncrease + "%");   
     }
@@ -519,7 +593,7 @@ public class RTree implements SpatialIndex {
    * Pick the seeds used to split a node.
    * Select two entries to be the first elements of the groups
    */
-  private void pickSeeds(Node n, Rectangle newRect, int newId, Node newNode) {
+  private void pickSeeds(Node n, float newRectMinX, float newRectMinY, float newRectMaxX, float newRectMaxY, int newId, Node newNode) {
     // Find extreme rectangles along all dimension. Along each dimension,
     // find the entry whose rectangle has the highest low side, and the one 
     // with the lowest high side. Record the separation.
@@ -529,66 +603,119 @@ public class RTree implements SpatialIndex {
     
     // for the purposes of picking seeds, take the MBR of the node to include
     // the new rectangle aswell.
-    n.mbr.add(newRect);
+    if (newRectMinX < n.mbrMinX) n.mbrMinX = newRectMinX;
+    if (newRectMinY < n.mbrMinY) n.mbrMinY = newRectMinY;
+    if (newRectMaxX > n.mbrMaxX) n.mbrMaxX = newRectMaxX;
+    if (newRectMaxY > n.mbrMaxY) n.mbrMaxY = newRectMaxY;
     
     if (log.isDebugEnabled()) {
-      log.debug("pickSeeds(): NodeId = " + n.nodeId + ", newRect = " + newRect);
+      log.debug("pickSeeds(): NodeId = " + n.nodeId);
     }
     
-    for (int d = 0; d < Rectangle.DIMENSIONS; d++) {
-      float tempHighestLow = newRect.min[d];
-      int tempHighestLowIndex = -1; // -1 indicates the new rectangle is the seed
-      
-      float tempLowestHigh = newRect.max[d];
-      int tempLowestHighIndex = -1;
-      
-      for (int i = 0; i < n.entryCount; i++) {
-        float tempLow = n.entries[i].min[d];
-        if (tempLow >= tempHighestLow) {
-           tempHighestLow = tempLow;
-           tempHighestLowIndex = i;
-        } else {  // ensure that the same index cannot be both lowestHigh and highestLow
-          float tempHigh = n.entries[i].max[d];
-          if (tempHigh <= tempLowestHigh) {
-            tempLowestHigh = tempHigh;
-            tempLowestHighIndex = i;
-          }
-        }
-      
-        // PS2 [Adjust for shape of the rectangle cluster] Normalize the separations
-        // by dividing by the widths of the entire set along the corresponding
-        // dimension
-        float normalizedSeparation = (tempHighestLow - tempLowestHigh) / (n.mbr.max[d] - n.mbr.min[d]);
-        
-        if (normalizedSeparation > 1 || normalizedSeparation < -1) {
-          log.error("Invalid normalized separation");
-        }
-      
-        if (log.isDebugEnabled()) {
-          log.debug("Entry " + i + ", dimension " + d + ": HighestLow = " + tempHighestLow + 
-                    " (index " + tempHighestLowIndex + ")" + ", LowestHigh = " +
-                    tempLowestHigh + " (index " + tempLowestHighIndex + ", NormalizedSeparation = " + normalizedSeparation);
-        }
-        
-        // PS3 [Select the most extreme pair] Choose the pair with the greatest
-        // normalized separation along any dimension.
-        if (normalizedSeparation > maxNormalizedSeparation) {
-          maxNormalizedSeparation = normalizedSeparation;
-          highestLowIndex = tempHighestLowIndex;
-          lowestHighIndex = tempLowestHighIndex;
+    float tempHighestLow = newRectMinX;
+    int tempHighestLowIndex = -1; // -1 indicates the new rectangle is the seed
+    
+    float tempLowestHigh = newRectMaxX;
+    int tempLowestHighIndex = -1; // -1 indicates the new rectangle is the seed 
+    
+    for (int i = 0; i < n.entryCount; i++) {
+      float tempLow = n.entriesMinX[i];
+      if (tempLow >= tempHighestLow) {
+         tempHighestLow = tempLow;
+         tempHighestLowIndex = i;
+      } else {  // ensure that the same index cannot be both lowestHigh and highestLow
+        float tempHigh = n.entriesMaxX[i];
+        if (tempHigh <= tempLowestHigh) {
+          tempLowestHigh = tempHigh;
+          tempLowestHighIndex = i;
         }
       }
-    }
       
+      // PS2 [Adjust for shape of the rectangle cluster] Normalize the separations
+      // by dividing by the widths of the entire set along the corresponding
+      // dimension
+      float normalizedSeparation = (tempHighestLow - tempLowestHigh) / (n.mbrMaxX - n.mbrMinX);
+      if (normalizedSeparation > 1 || normalizedSeparation < -1) {
+        log.error("Invalid normalized separation X");
+      }
+      
+      if (log.isDebugEnabled()) {
+              log.debug("Entry " + i + ", dimension X: HighestLow = " + tempHighestLow + 
+                        " (index " + tempHighestLowIndex + ")" + ", LowestHigh = " +
+                        tempLowestHigh + " (index " + tempLowestHighIndex + ", NormalizedSeparation = " + normalizedSeparation);
+      }
+          
+      // PS3 [Select the most extreme pair] Choose the pair with the greatest
+      // normalized separation along any dimension.
+      // Note that only positive normalized separations are used; if negative,
+      // it means the rectangles overlapped.
+      if (normalizedSeparation > maxNormalizedSeparation) {
+        highestLowIndex = tempHighestLowIndex;
+        lowestHighIndex = tempLowestHighIndex;
+        maxNormalizedSeparation = normalizedSeparation;
+      }
+    }
+    
+    // Repeat for the Y dimension
+    tempHighestLow = newRectMinY;
+    tempHighestLowIndex = -1; // -1 indicates the new rectangle is the seed
+    
+    tempLowestHigh = newRectMaxY;
+    tempLowestHighIndex = -1; // -1 indicates the new rectangle is the seed 
+    
+    for (int i = 0; i < n.entryCount; i++) {
+      float tempLow = n.entriesMinY[i];
+      if (tempLow >= tempHighestLow) {
+         tempHighestLow = tempLow;
+         tempHighestLowIndex = i;
+      } else {  // ensure that the same index cannot be both lowestHigh and highestLow
+        float tempHigh = n.entriesMaxY[i];
+        if (tempHigh <= tempLowestHigh) {
+          tempLowestHigh = tempHigh;
+          tempLowestHighIndex = i;
+        }
+      }
+      
+      // PS2 [Adjust for shape of the rectangle cluster] Normalize the separations
+      // by dividing by the widths of the entire set along the corresponding
+      // dimension
+      float normalizedSeparation = (tempHighestLow - tempLowestHigh) / (n.mbrMaxY - n.mbrMinY);
+      if (normalizedSeparation > 1 || normalizedSeparation < -1) {
+        log.error("Invalid normalized separation Y");
+      }
+      
+      if (log.isDebugEnabled()) {
+              log.debug("Entry " + i + ", dimension Y: HighestLow = " + tempHighestLow + 
+                        " (index " + tempHighestLowIndex + ")" + ", LowestHigh = " +
+                        tempLowestHigh + " (index " + tempLowestHighIndex + ", NormalizedSeparation = " + normalizedSeparation);
+      }
+          
+      // PS3 [Select the most extreme pair] Choose the pair with the greatest
+      // normalized separation along any dimension.
+      // Note that only positive normalized separations are used; if negative,
+      // it means the rectangles overlapped.
+      if (normalizedSeparation > maxNormalizedSeparation) {
+        highestLowIndex = tempHighestLowIndex;
+        lowestHighIndex = tempLowestHighIndex;
+        maxNormalizedSeparation = normalizedSeparation;
+      }
+    }
+    
     // highestLowIndex is the seed for the new node.
     if (highestLowIndex == -1) {
-      newNode.addEntry(newRect, newId);
+      newNode.addEntry(newRectMinX, newRectMinY, newRectMaxX, newRectMaxY, newId);
     } else {
-      newNode.addEntryNoCopy(n.entries[highestLowIndex], n.ids[highestLowIndex]);
-      n.entries[highestLowIndex] = null;
+      newNode.addEntry(n.entriesMinX[highestLowIndex], n.entriesMinY[highestLowIndex], 
+                       n.entriesMaxX[highestLowIndex], n.entriesMaxY[highestLowIndex], 
+                       n.ids[highestLowIndex]);
+      n.ids[highestLowIndex] = -1;
       
       // move the new rectangle into the space vacated by the seed for the new node
-      n.entries[highestLowIndex] = newRect;
+      n.entriesMinX[highestLowIndex] = newRectMinX;
+      n.entriesMinY[highestLowIndex] = newRectMinY;
+      n.entriesMaxX[highestLowIndex] = newRectMaxX;
+      n.entriesMaxY[highestLowIndex] = newRectMaxY;
+      
       n.ids[highestLowIndex] = newId;
     }
     
@@ -599,7 +726,10 @@ public class RTree implements SpatialIndex {
     
     entryStatus[lowestHighIndex] = ENTRY_STATUS_ASSIGNED;
     n.entryCount = 1;
-    n.mbr.set(n.entries[lowestHighIndex].min, n.entries[lowestHighIndex].max);
+    n.mbrMinX = n.entriesMinX[lowestHighIndex];
+    n.mbrMinY = n.entriesMinY[lowestHighIndex];
+    n.mbrMaxX = n.entriesMaxX[lowestHighIndex];
+    n.mbrMaxY = n.entriesMaxY[lowestHighIndex];
   }
 
   /** 
@@ -623,12 +753,15 @@ public class RTree implements SpatialIndex {
     for (int i = 0; i < maxNodeEntries; i++) {
       if (entryStatus[i] == ENTRY_STATUS_UNASSIGNED) {
         
-        if (n.entries[i] == null) {
+        if (n.ids[i] == -1) {
           log.error("Error: Node " + n.nodeId + ", entry " + i + " is null");
         }
         
-        float nIncrease = n.mbr.enlargement(n.entries[i]);
-        float newNodeIncrease = newNode.mbr.enlargement(n.entries[i]);
+        float nIncrease = Rectangle.enlargement(n.mbrMinX, n.mbrMinY, n.mbrMaxX, n.mbrMaxY, 
+                                                n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i]);
+        float newNodeIncrease = Rectangle.enlargement(newNode.mbrMinX, newNode.mbrMinY, newNode.mbrMaxX, newNode.mbrMaxY,
+                                                      n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i]);
+
         float difference = Math.abs(nIncrease - newNodeIncrease);
          
         if (difference > maxDifference) {
@@ -638,9 +771,9 @@ public class RTree implements SpatialIndex {
             nextGroup = 0; 
           } else if (newNodeIncrease < nIncrease) {
             nextGroup = 1;
-          } else if (n.mbr.area() < newNode.mbr.area()) {
+          } else if (Rectangle.area(n.mbrMinX, n.mbrMinY, n.mbrMaxX, n.mbrMaxY) < Rectangle.area(newNode.mbrMinX, newNode.mbrMinY, newNode.mbrMaxX, newNode.mbrMaxY)) {
             nextGroup = 0;
-          } else if (newNode.mbr.area() < n.mbr.area()) {
+          } else if (Rectangle.area(newNode.mbrMinX, newNode.mbrMinY, newNode.mbrMaxX, newNode.mbrMaxY) < Rectangle.area(n.mbrMinX, n.mbrMinY, n.mbrMaxX, n.mbrMaxY)) {
             nextGroup = 1;
           } else if (newNode.entryCount < maxNodeEntries / 2) {
             nextGroup = 0;
@@ -659,12 +792,15 @@ public class RTree implements SpatialIndex {
     entryStatus[next] = ENTRY_STATUS_ASSIGNED;
       
     if (nextGroup == 0) {
-      n.mbr.add(n.entries[next]);
+      if (n.entriesMinX[next] < n.mbrMinX) n.mbrMinX = n.entriesMinX[next];
+      if (n.entriesMinY[next] < n.mbrMinY) n.mbrMinY = n.entriesMinY[next];
+      if (n.entriesMaxX[next] > n.mbrMaxX) n.mbrMaxX = n.entriesMaxX[next];
+      if (n.entriesMaxY[next] > n.mbrMaxY) n.mbrMaxY = n.entriesMaxY[next];
       n.entryCount++;
     } else {
       // move to new node.
-      newNode.addEntryNoCopy(n.entries[next], n.ids[next]);
-      n.entries[next] = null;
+      newNode.addEntry(n.entriesMinX[next], n.entriesMinY[next], n.entriesMaxX[next], n.entriesMaxY[next], n.ids[next]);
+      n.ids[next] = -1;
     }
     
     return next; 
@@ -678,28 +814,28 @@ public class RTree implements SpatialIndex {
    * Uses the member variable nearestIds to store the nearest
    * entry IDs.
    * 
-   * [x] TODO rewrite this to be non-recursive?
+   * TODO rewrite this to be non-recursive?
    */
-  private float nearest(Point p, Node n, float nearestDistance) {
+  private float nearest(Point p, Node n, float furthestDistanceSq) {
     for (int i = 0; i < n.entryCount; i++) {
-      float tempDistance = n.entries[i].distance(p);  
+      float tempDistanceSq = Rectangle.distanceSq(n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i], p.x, p.y);
       if (n.isLeaf()) { // for leaves, the distance is an actual nearest distance 
-        if (tempDistance < nearestDistance) {
-          nearestDistance = tempDistance;
+        if (tempDistanceSq < furthestDistanceSq) {
+          furthestDistanceSq = tempDistanceSq;
           nearestIds.clear();
         }
-        if (tempDistance <= nearestDistance) {
+        if (tempDistanceSq <= furthestDistanceSq) {
           nearestIds.add(n.ids[i]);
         }     
       } else { // for index nodes, only go into them if they potentially could have
                // a rectangle nearer than actualNearest
-         if (tempDistance <= nearestDistance) {
+         if (tempDistanceSq <= furthestDistanceSq) {
            // search the child node
-           nearestDistance = nearest(p, getNode(n.ids[i]), nearestDistance);
+           furthestDistanceSq = nearest(p, getNode(n.ids[i]), furthestDistanceSq);
          }
       }
     }
-    return nearestDistance;
+    return furthestDistanceSq;
   }
   
   /** 
@@ -707,12 +843,12 @@ public class RTree implements SpatialIndex {
    * Immediately calls execute() on the passed IntProcedure when 
    * a matching entry is found.
    * 
-   * [x] TODO rewrite this to be non-recursive? Make sure it
+   * TODO rewrite this to be non-recursive? Make sure it
    * doesn't slow it down.
    */
-  private void intersects(Rectangle r, IntProcedure v, Node n) {
+  private void intersects(Rectangle r, TIntProcedure v, Node n) {
     for (int i = 0; i < n.entryCount; i++) {
-      if (r.intersects(n.entries[i])) {
+      if (Rectangle.intersects(r.minX, r.minY, r.maxX, r.maxY, n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i])) {
         if (n.isLeaf()) {
           v.execute(n.ids[i]);
         } else {
@@ -730,7 +866,6 @@ public class RTree implements SpatialIndex {
    * Note that the parent and parentEntry stacks are expected to
    * contain the nodeIds of all parents up to the root.
    */
-  private Rectangle oldRectangle = new Rectangle(0, 0, 0, 0);
   private void condenseTree(Node l) {
     // CT1 [Initialize] Set n=l. Set the list of eliminated
     // nodes to be empty.
@@ -754,10 +889,19 @@ public class RTree implements SpatialIndex {
       } else {
         // CT4 [Adjust covering rectangle] If N has not been eliminated,
         // adjust EnI to tightly contain all entries in N
-        if (!n.mbr.equals(parent.entries[parentEntry])) {
-          oldRectangle.set(parent.entries[parentEntry].min, parent.entries[parentEntry].max);
-          parent.entries[parentEntry].set(n.mbr.min, n.mbr.max);
-          parent.recalculateMBR(oldRectangle);
+        if (n.mbrMinX != parent.entriesMinX[parentEntry] ||
+            n.mbrMinY != parent.entriesMinY[parentEntry] ||
+            n.mbrMaxX != parent.entriesMaxX[parentEntry] ||
+            n.mbrMaxY != parent.entriesMaxY[parentEntry]) {
+          float deletedMinX = parent.entriesMinX[parentEntry];
+          float deletedMinY = parent.entriesMinY[parentEntry];
+          float deletedMaxX = parent.entriesMaxX[parentEntry];
+          float deletedMaxY = parent.entriesMaxY[parentEntry];
+          parent.entriesMinX[parentEntry] = n.mbrMinX;
+          parent.entriesMinY[parentEntry] = n.mbrMinY;
+          parent.entriesMaxX[parentEntry] = n.mbrMaxX;
+          parent.entriesMaxY[parentEntry] = n.mbrMaxY;
+          parent.recalculateMBRIfInfluencedBy(deletedMinX, deletedMinY, deletedMaxX, deletedMaxY);
         }
       }
       // CT5 [Move up one level in tree] Set N=P and repeat from CT2
@@ -772,8 +916,8 @@ public class RTree implements SpatialIndex {
     while (eliminatedNodeIds.size() > 0) {
       Node e = getNode(eliminatedNodeIds.pop());
       for (int j = 0; j < e.entryCount; j++) {
-        add(e.entries[j], e.ids[j], e.level); 
-        e.entries[j] = null;
+        add(e.entriesMinX[j], e.entriesMinY[j], e.entriesMaxX[j], e.entriesMaxY[j], e.ids[j], e.level); 
+        e.ids[j] = -1;
       }
       e.entryCount = 0;
       deletedNodeIds.push(e.nodeId);
@@ -783,7 +927,7 @@ public class RTree implements SpatialIndex {
   /**
    *  Used by add(). Chooses a leaf to add the rectangle to.
    */
-  private Node chooseNode(Rectangle r, int level) {
+  private Node chooseNode(float minX, float minY, float maxX, float maxY, int level) {
     // CL1 [Initialize] Set N to be the root node
     Node n = getNode(rootNodeId);
     parents.clear();
@@ -802,14 +946,20 @@ public class RTree implements SpatialIndex {
       // CL3 [Choose subtree] If N is not at the desired level, let F be the entry in N 
       // whose rectangle FI needs least enlargement to include EI. Resolve
       // ties by choosing the entry with the rectangle of smaller area.
-      float leastEnlargement = n.getEntry(0).enlargement(r);
+      float leastEnlargement = Rectangle.enlargement(n.entriesMinX[0], n.entriesMinY[0], n.entriesMaxX[0], n.entriesMaxY[0],
+                                                     minX, minY, maxX, maxY);
       int index = 0; // index of rectangle in subtree
       for (int i = 1; i < n.entryCount; i++) {
-        Rectangle tempRectangle = n.getEntry(i);
-        float tempEnlargement = tempRectangle.enlargement(r);
+        float tempMinX = n.entriesMinX[i];
+        float tempMinY = n.entriesMinY[i];
+        float tempMaxX = n.entriesMaxX[i];
+        float tempMaxY = n.entriesMaxY[i];
+        float tempEnlargement = Rectangle.enlargement(tempMinX, tempMinY, tempMaxX, tempMaxY, 
+                                                      minX, minY, maxX, maxY);
         if ((tempEnlargement < leastEnlargement) ||
             ((tempEnlargement == leastEnlargement) && 
-             (tempRectangle.area() < n.getEntry(index).area()))) {
+             (Rectangle.area(tempMinX, tempMinY, tempMaxX, tempMaxY) < 
+              Rectangle.area(n.entriesMinX[index], n.entriesMinY[index], n.entriesMaxX[index], n.entriesMaxY[index])))) {
           index = i;
           leastEnlargement = tempEnlargement;
         }
@@ -846,13 +996,18 @@ public class RTree implements SpatialIndex {
              parent.nodeId + " should point to node " + 
              n.nodeId + "; actually points to node " + parent.ids[entry]);
       }
-      
-      if (!parent.entries[entry].equals(n.mbr)) {
-        parent.entries[entry].set(n.mbr.min, n.mbr.max);
-        parent.mbr.set(parent.entries[0].min, parent.entries[0].max);
-        for (int i = 1; i < parent.entryCount; i++) {
-          parent.mbr.add(parent.entries[i]);
-        }
+   
+      if (parent.entriesMinX[entry] != n.mbrMinX ||
+          parent.entriesMinY[entry] != n.mbrMinY ||
+          parent.entriesMaxX[entry] != n.mbrMaxX ||
+          parent.entriesMaxY[entry] != n.mbrMaxY) {
+   
+        parent.entriesMinX[entry] = n.mbrMinX;
+        parent.entriesMinY[entry] = n.mbrMinY;
+        parent.entriesMaxX[entry] = n.mbrMaxX;
+        parent.entriesMaxY[entry] = n.mbrMaxY;
+
+        parent.recalculateMBR();
       }
       
       // AT4 [Propagate node split upward] If N has a partner NN resulting from 
@@ -863,9 +1018,9 @@ public class RTree implements SpatialIndex {
       Node newNode = null;
       if (nn != null) {
         if (parent.entryCount < maxNodeEntries) {
-          parent.addEntry(nn.mbr, nn.nodeId);
+          parent.addEntry(nn.mbrMinX, nn.mbrMinY, nn.mbrMaxX, nn.mbrMaxY, nn.nodeId);
         } else {
-          newNode = splitNode(parent, nn.mbr.copy(), nn.nodeId);
+          newNode = splitNode(parent, nn.mbrMinX, nn.mbrMinY, nn.mbrMaxX, nn.mbrMaxY, nn.nodeId);
         }
       }
       
@@ -898,27 +1053,27 @@ public class RTree implements SpatialIndex {
     }
     
     Rectangle calculatedMBR = calculateMBR(n);
-    
-    if (!n.mbr.equals(calculatedMBR)) {
+    Rectangle actualMBR = new Rectangle(n.mbrMinX, n.mbrMinY, n.mbrMaxX, n.mbrMaxY);
+    if (!actualMBR.equals(calculatedMBR)) {
       log.error("Error: Node " + nodeId + ", calculated MBR does not equal stored MBR");
     }
     
-    if (expectedMBR != null && !n.mbr.equals(expectedMBR)) {
+    if (expectedMBR != null && !actualMBR.equals(expectedMBR)) {
       log.error("Error: Node " + nodeId + ", expected MBR (from parent) does not equal stored MBR");
     }
     
     // Check for corruption where a parent entry is the same object as the child MBR
-    if (expectedMBR != null && n.mbr.sameObject(expectedMBR)) {
+    if (expectedMBR != null && actualMBR.sameObject(expectedMBR)) {
       log.error("Error: Node " + nodeId + " MBR using same rectangle object as parent's entry");
     }
     
     for (int i = 0; i < n.entryCount; i++) {
-      if (n.entries[i] == null) {
+      if (n.ids[i] == -1) {
         log.error("Error: Node " + nodeId + ", Entry " + i + " is null");
       }     
       
       if (n.level > 1) { // if not a leaf
-        checkConsistency(n.ids[i], n.level - 1, n.entries[i]); 
+        checkConsistency(n.ids[i], n.level - 1, new Rectangle(n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i])); 
       }   
     } 
   }
@@ -928,10 +1083,13 @@ public class RTree implements SpatialIndex {
    * Used in consistency checking
    */
   private Rectangle calculateMBR(Node n) {
-    Rectangle mbr = new Rectangle(n.entries[0].min, n.entries[0].max);
+    Rectangle mbr = new Rectangle(n.entriesMinX[0], n.entriesMinY[0], n.entriesMaxX[0], n.entriesMaxY[0]);
     
     for (int i = 1; i < n.entryCount; i++) {
-      mbr.add(n.entries[i]);
+      if (n.entriesMinX[i] < mbr.minX) mbr.minX = n.entriesMinX[i];
+      if (n.entriesMinY[i] < mbr.minY) mbr.minY = n.entriesMinY[i];
+      if (n.entriesMaxX[i] > mbr.maxX) mbr.maxX = n.entriesMaxX[i];
+      if (n.entriesMaxY[i] > mbr.maxY) mbr.maxY = n.entriesMaxY[i];
     }
     return mbr; 
   }

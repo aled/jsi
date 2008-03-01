@@ -1,6 +1,6 @@
 //   Node.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002 Infomatiq Limited
+//   Copyright (C) 2002-2003 Infomatiq Limited
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -18,18 +18,24 @@
 
 package com.infomatiq.jsi.rtree;
 
-import com.infomatiq.jsi.Rectangle;
-
 /**
  * <p>Used by RTree. There are no public methods in this class.</p>
  * 
  * @author aled.morris@infomatiq.co.uk
- * @version 1.0b2
+ * @version 1.0b3
  */
 public class Node {
   int nodeId = 0;
-  Rectangle mbr = null;
-  Rectangle[] entries = null;
+  float mbrMinX = Float.POSITIVE_INFINITY;
+  float mbrMinY = Float.POSITIVE_INFINITY;
+  float mbrMaxX = Float.NEGATIVE_INFINITY;
+  float mbrMaxY = Float.NEGATIVE_INFINITY;
+  
+  float[] entriesMinX = null;
+  float[] entriesMinY = null;
+  float[] entriesMaxX = null;
+  float[] entriesMaxY = null;
+  
   int[] ids = null;
   int level;
   int entryCount;
@@ -37,36 +43,34 @@ public class Node {
   Node(int nodeId, int level, int maxNodeEntries) {
     this.nodeId = nodeId;
     this.level = level;
-    entries = new Rectangle[maxNodeEntries];
+    entriesMinX = new float[maxNodeEntries];
+    entriesMinY = new float[maxNodeEntries];
+    entriesMaxX = new float[maxNodeEntries];
+    entriesMaxY = new float[maxNodeEntries];
     ids = new int[maxNodeEntries];
   }
    
-  void addEntry(Rectangle r, int id) {
+  void addEntry(float minX, float minY, float maxX, float maxY, int id) {
     ids[entryCount] = id;
-    entries[entryCount] = r.copy();
+    entriesMinX[entryCount] = minX;
+    entriesMinY[entryCount] = minY;
+    entriesMaxX[entryCount] = maxX;
+    entriesMaxY[entryCount] = maxY;
+   
+    if (minX < mbrMinX) mbrMinX = minX;
+    if (minY < mbrMinY) mbrMinY = minY;
+    if (maxX > mbrMaxX) mbrMaxX = maxX;
+    if (maxY > mbrMaxY) mbrMaxY = maxY;
+    
     entryCount++;
-    if (mbr == null) {
-      mbr = r.copy();
-    } else {
-      mbr.add(r);
-    }
-  }
-  
-  void addEntryNoCopy(Rectangle r, int id) {
-    ids[entryCount] = id;
-    entries[entryCount] = r;
-    entryCount++;
-    if (mbr == null) {
-      mbr = r.copy();
-    } else {
-      mbr.add(r);
-    }
   }
   
   // Return the index of the found entry, or -1 if not found
-  int findEntry(Rectangle r, int id) {
+  int findEntry(float minX, float minY, float maxX, float maxY, int id) {
     for (int i = 0; i < entryCount; i++) {
-    	if (id == ids[i] && r.equals(entries[i])) {
+    	if (id == ids[i] && 
+          entriesMinX[i] == minX && entriesMinY[i] == minY &&
+          entriesMaxX[i] == maxX && entriesMaxY[i] == maxY) {
     	  return i;	
     	}
     }
@@ -76,12 +80,17 @@ public class Node {
   // delete entry. This is done by setting it to null and copying the last entry into its space.
   void deleteEntry(int i, int minNodeEntries) {
 	  int lastIndex = entryCount - 1;
-	  Rectangle deletedRectangle = entries[i];
-    entries[i] = null;
-	  if (i != lastIndex) {
-	  	entries[i] = entries[lastIndex];
-	  	ids[i] = ids[lastIndex];
-      entries[lastIndex] = null;
+    float deletedMinX = entriesMinX[i];
+    float deletedMinY = entriesMinY[i];
+    float deletedMaxX = entriesMaxX[i];
+    float deletedMaxY = entriesMaxY[i];
+    
+    if (i != lastIndex) {
+      entriesMinX[i] = entriesMinX[lastIndex];
+      entriesMinY[i] = entriesMinY[lastIndex];
+      entriesMaxX[i] = entriesMaxX[lastIndex];
+      entriesMaxY[i] = entriesMaxY[lastIndex];
+    	ids[i] = ids[lastIndex];
 	  }
     entryCount--;
     
@@ -89,55 +98,61 @@ public class Node {
     // otherwise, don't bother, as the node will be 
     // eliminated anyway.
     if (entryCount >= minNodeEntries) {
-      recalculateMBR(deletedRectangle);
+      recalculateMBRIfInfluencedBy(deletedMinX, deletedMinY, deletedMaxX, deletedMaxY);
     }
   } 
   
-  // oldRectangle is a rectangle that has just been deleted or made smaller.
-  // Thus, the MBR is only recalculated if the OldRectangle influenced the old MBR
-  void recalculateMBR(Rectangle deletedRectangle) {
-    if (mbr.edgeOverlaps(deletedRectangle)) { 
-      mbr.set(entries[0].min, entries[0].max);
-      
-      for (int i = 1; i < entryCount; i++) {
-        mbr.add(entries[i]);
-      }
+  // deletedMin/MaxX/Y is a rectangle that has just been deleted or made smaller.
+  // Thus, the MBR is only recalculated if the deleted rectangle influenced the old MBR
+  void recalculateMBRIfInfluencedBy(float deletedMinX, float deletedMinY, float deletedMaxX, float deletedMaxY) {
+    if (mbrMinX == deletedMinX || mbrMinY == deletedMinY || mbrMaxX == deletedMaxX || mbrMaxY == deletedMaxY) { 
+      recalculateMBR();   
     }
   }
    
-  public int getEntryCount() {
-    return entryCount;
-  }
-  
-  public Rectangle getEntry(int index) {
-    if (index < entryCount) {
-      return entries[index];
+  void recalculateMBR() {
+    mbrMinX = entriesMinX[0];
+    mbrMinY = entriesMinY[0];
+    mbrMaxX = entriesMaxX[0];
+    mbrMaxY = entriesMaxY[0];
+
+    for (int i = 1; i < entryCount; i++) {
+      if (entriesMinX[i] < mbrMinX) mbrMinX = entriesMinX[i];
+      if (entriesMinY[i] < mbrMinY) mbrMinY = entriesMinY[i];
+      if (entriesMaxX[i] > mbrMaxX) mbrMaxX = entriesMaxX[i];
+      if (entriesMaxY[i] > mbrMaxY) mbrMaxY = entriesMaxY[i];
     }
-    return null;
   }
-  
-  public int getId(int index) {
-    if (index < entryCount) {
-      return ids[index];
-    }
-    return -1;
-  }
-  
+    
   /**
    * eliminate null entries, move all entries to the start of the source node
    */
   void reorganize(RTree rtree) {
     int countdownIndex = rtree.maxNodeEntries - 1; 
     for (int index = 0; index < entryCount; index++) {
-      if (entries[index] == null) {
-         while (entries[countdownIndex] == null && countdownIndex > index) {
+      if (ids[index] == -1) {
+         while (ids[countdownIndex] == -1 && countdownIndex > index) {
            countdownIndex--;
          }
-         entries[index] = entries[countdownIndex];
+         entriesMinX[index] = entriesMinX[countdownIndex];
+         entriesMinY[index] = entriesMinY[countdownIndex];
+         entriesMaxX[index] = entriesMaxX[countdownIndex];
+         entriesMaxY[index] = entriesMaxY[countdownIndex];
          ids[index] = ids[countdownIndex];    
-         entries[countdownIndex] = null;
+         ids[countdownIndex] = -1;
       }
     }
+  }
+  
+  public int getEntryCount() {
+    return entryCount;
+  }
+ 
+  public int getId(int index) {
+    if (index < entryCount) {
+      return ids[index];
+    }
+    return -1;
   }
   
   boolean isLeaf() {
@@ -146,9 +161,5 @@ public class Node {
   
   public int getLevel() {
     return level; 
-  }
-  
-  public Rectangle getMBR() {
-    return mbr; 
   }
 }
