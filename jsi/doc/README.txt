@@ -9,6 +9,6 @@ jsi-1.0b1/jsi/lib          - the log4j-1.2.6 and trove-0.1.8 libraries are
                              test code.
 jsi-1.0b1/jsi/tests        - test scripts
 jsi-1.0b1/jsi/test-results - test results will be placed here
-jsi-1.0b1/doc              - documentation
-jsi-1.0b1/doc/javadoc      - javadoc documentation
-jsi-1.0b1/build.xml        - ANT build script. See BUILD.txt.
+jsi-1.0b1/jsi/doc          - documentation
+jsi-1.0b1/jsi/doc/javadoc  - javadoc documentation
+jsi-1.0b1/jsi/build.xml    - ANT build script. See BUILD.txt.

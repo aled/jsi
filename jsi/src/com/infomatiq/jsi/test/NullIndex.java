@@ -31,10 +31,10 @@ import com.infomatiq.jsi.SpatialIndex;
  * testing framework.
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b1
+ * @version 1.0b2
  */
 public class NullIndex implements SpatialIndex {
-  private static final String version = "1.0b1";
+  private static final String version = "1.0b2";
     
   /**
    * @see com.infomatiq.jsi.SpatialIndex#init(Properties)
@@ -78,6 +78,13 @@ public class NullIndex implements SpatialIndex {
    */
   public int size() {
     return 0;
+  }
+  
+  /**
+   * @see com.infomatiq.jsi.SpatialIndex#getBounds()
+   */
+  public Rectangle getBounds() {
+    return null; 
   }
 
   /**

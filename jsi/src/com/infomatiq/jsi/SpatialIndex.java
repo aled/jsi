@@ -25,7 +25,7 @@ import java.util.Properties;
  * spatial indexes. This includes the RTree and its variants.
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b1
+ * @version 1.0b2
  */
 public interface SpatialIndex {
   
@@ -109,10 +109,17 @@ public interface SpatialIndex {
    */
   public int size();
   
+  
+  /**
+   * Returns the bounds of all the entries in the spatial index,
+   * or null if there are no entries.
+   */
+  public Rectangle getBounds();
+  
   /**
    * Returns a string identifying the type of
    * spatial index, and the version number, 
-   * eg "SimpleIndex-1.0b1"
+   * eg "SimpleIndex-0.1"
    */
   public String getVersion();
   

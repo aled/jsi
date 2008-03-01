@@ -30,7 +30,7 @@ import org.apache.log4j.Logger;
  * Index library against alternative implementations.
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b1
+ * @version 1.0b2
  */
 public class PerformanceTest extends SpatialIndexTest {
 

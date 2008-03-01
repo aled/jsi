@@ -37,7 +37,7 @@ import com.infomatiq.jsi.rtree.RTree;
  * @version $Revision$
  */
 public class RTreeWrapper implements SpatialIndex {
-  private static final String version = "1.0b1";
+  private static final String version = "1.0b2";
   
   private RTree tree;
   
@@ -107,6 +107,13 @@ public class RTreeWrapper implements SpatialIndex {
    */
   public int size() {
     return tree.size();  
+  }
+  
+  /**
+   * @see com.infomatiq.jsi.SpatialIndex#getBounds()
+   */
+  public Rectangle getBounds() {
+    return tree.getBounds(); 
   }
   
   /**

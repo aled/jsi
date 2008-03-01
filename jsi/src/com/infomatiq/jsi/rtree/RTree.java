@@ -47,13 +47,13 @@ import com.infomatiq.jsi.SpatialIndex;
  * primitive collections from the trove4j library.</p>
  * 
  * @author aled.morris@infomatiq.co.uk
- * @version 1.0b1
+ * @version 1.0b2
  */
 public class RTree implements SpatialIndex {
   private static final Logger log = Logger.getLogger(RTree.class.getName());
   private static final Logger deleteLog = Logger.getLogger(RTree.class.getName() + "-delete");
   
-  private static final String version = "1.0b1";
+  private static final String version = "1.0b2";
   
   // parameters of the tree
   private final static int DEFAULT_MAX_NODE_ENTRIES = 10;
@@ -372,6 +372,19 @@ public class RTree implements SpatialIndex {
   public int size() {
     return size;
   }
+
+  /**
+   * @see com.infomatiq.jsi.SpatialIndex#getBounds()
+   */
+  public Rectangle getBounds() {
+    Rectangle bounds = null;
+    
+    Node n = getNode(getRootNodeId());
+    if (n != null && n.getMBR() != null) {
+      bounds = n.getMBR().copy();
+    }
+    return bounds;
+  }
     
   /**
    * @see com.infomatiq.jsi.SpatialIndex#getVersion()
@@ -400,15 +413,21 @@ public class RTree implements SpatialIndex {
   /**
    * Get a node object, given the ID of the node.
    */
-  private Node getNode(int index) {
+  public Node getNode(int index) {
     return (Node) nodeMap.get(index);
   }
-  
-  private int getHighestUsedNodeId() {
+
+  /**
+   * Get the highest used node ID
+   */  
+  public int getHighestUsedNodeId() {
     return highestUsedNodeId;
   }
 
-  private int getRootNodeId() {
+  /**
+   * Get the root node ID
+   */
+  public int getRootNodeId() {
     return rootNodeId; 
   }
       

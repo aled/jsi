@@ -42,11 +42,11 @@ import com.infomatiq.jsi.SpatialIndex;
  * <p>On the other hand, the add() and delete() methods are very fast :-)</p>
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b1
+ * @version 1.0b2
  */
 public class SimpleIndex implements SpatialIndex {
   TIntObjectHashMap m_map = new TIntObjectHashMap();
-  private static final String version = "1.0b1";
+  private static final String version = "1.0b2";
   
   /**
    * Does nothing. There are no implementation dependent properties for 
@@ -148,6 +148,25 @@ public class SimpleIndex implements SpatialIndex {
    */
   public int size() {
     return m_map.size();
+  }
+  
+  /**
+   * @see com.infomatiq.jsi.SpatialIndex#getBounds()
+   */
+  public Rectangle getBounds() {
+    Rectangle bounds = null;
+    TIntObjectIterator i = m_map.iterator();
+    while (i.hasNext()) {
+      i.advance();
+      int currentId = i.key();
+      Rectangle currentRectangle = (Rectangle) i.value(); 
+      if (bounds == null) {
+        bounds = currentRectangle.copy(); 
+      } else {
+        bounds.add(currentRectangle);
+      }
+    }
+    return bounds;
   }
   
   /**
