@@ -1,6 +1,6 @@
 //   SpatialIndex.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002 Infomatiq Limited
+//   Copyright (C) 2002-2003 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,8 @@
 
 package com.infomatiq.jsi;
 
+import gnu.trove.TIntProcedure;
+
 import java.util.Properties;
 
 /**
@@ -25,7 +27,7 @@ import java.util.Properties;
  * spatial indexes. This includes the RTree and its variants.
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b2
+ * @version 1.0b3
  */
 public interface SpatialIndex {
   
@@ -62,14 +64,45 @@ public interface SpatialIndex {
   public boolean delete(Rectangle r, int id);
    
   /**
-   * Finds all rectangles that are nearest to the passed rectangle, and calls 
-   * execute() on the passed IntProcedure for each one. 
+   * Finds the nearest rectangles to the passed rectangle and calls 
+   * v.execute(id) for each one.
+   * 
+   * If multiple rectangles are equally near, they will
+   * all be returned. 
    * 
    * @param p The point for which this method finds the
    * nearest neighbours.
    * 
-   * @param ip The IntProcedure whose execute() method is is called
+   * @param v The IntProcedure whose execute() method is is called
    * for each nearest neighbour.
+   * 
+   * @param furthestDistance The furthest distance away from the rectangle
+   * to search. Rectangles further than this will not be found. 
+   * 
+   * This should be as small as possible to minimise
+   * the search time.
+   *                         
+   * Use Float.POSITIVE_INFINITY to guarantee that the nearest rectangle is found,
+   * no matter how far away, although this will slow down the algorithm.
+   */
+  public void nearest(Point p, TIntProcedure v, float furthestDistance);
+  
+  /**
+   * Finds the N nearest rectangles to the passed rectangle, and calls
+   * execute(id, distance) on each one, in order of increasing distance.
+   * 
+   * Note that fewer than N rectangles may be found if fewer entries
+   * exist within the specified furthest distance, or more if rectangles
+   * N and N+1 have equal distances. 
+   *  
+   * @param p The point for which this method finds the
+   * nearest neighbours.
+   * 
+   * @param v The IntFloatProcedure whose execute() method is is called
+   * for each nearest neighbour.
+   * 
+   * @param n The desired number of rectangles to find (but note that 
+   * fewer or more may be returned)
    * 
    * @param distance The furthest distance away from the rectangle
    * to search. Rectangles further than this will not be found. 
@@ -80,7 +113,7 @@ public interface SpatialIndex {
    * Use Float.POSITIVE_INFINITY to guarantee that the nearest rectangle is found,
    * no matter how far away, although this will slow down the algorithm.
    */
-  public void nearest(Point p, IntProcedure v, float distance);
+  public void nearestN(Point p, TIntProcedure v, int n, float distance);
   
   /**
    * Finds all rectangles that intersect the passed rectangle.
@@ -91,7 +124,7 @@ public interface SpatialIndex {
    * @param ip The IntProcedure whose execute() method is is called
    *           for each intersecting rectangle.
    */
-  public void intersects(Rectangle r, IntProcedure ip);  
+  public void intersects(Rectangle r, TIntProcedure ip);  
 
   /**
    * Finds all rectangles contained by the passed rectangle.
@@ -102,7 +135,7 @@ public interface SpatialIndex {
    * @param v The visitor whose visit() method is is called
    *           for each contained rectangle.
    */
-  public void contains(Rectangle r, IntProcedure ip); 
+  public void contains(Rectangle r, TIntProcedure ip); 
   
   /**
    * Returns the number of entries in the spatial index

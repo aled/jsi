@@ -1,6 +1,6 @@
 //   PerformanceTest.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002 Infomatiq Limited
+//   Copyright (C) 2002-2003 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@ import org.apache.log4j.Logger;
  * Index library against alternative implementations.
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b2
+ * @version 1.0b3
  */
 public class PerformanceTest extends SpatialIndexTest {
 
@@ -40,11 +40,68 @@ public class PerformanceTest extends SpatialIndexTest {
     super(s);
   }
   
+  // Tests add, intersect, nearest, nearestn, contains.
+  // Can optimize for add performance, memory efficiency, or query performance.
+  //
+  public void testQueryPerformance() {
+    Date currentDate = new Date();
+    
+    addPerformanceLog.info(currentDate);
+    addPerformanceLog.info("IndexType,TestId,MinNodeEntries,MaxNodeEntries,TreeVariant,TreeSize,AddCount,AverageAddTime");
+    
+    intersectPerformanceLog.info(currentDate);
+    intersectPerformanceLog.info("IndexType,TestId,MinNodeEntries,MaxNodeEntries,TreeVariant,TreeSize,QueryCount,AverageIntersectCount,AverageQueryTime");
+
+    nearestPerformanceLog.info(currentDate);
+    nearestPerformanceLog.info("IndexType,TestId,MinNodeEntries,MaxNodeEntries,TreeVariant,TreeSize,QueryCount,AverageNearestCount,AverageQueryTime");
+
+    nearestNPerformanceLog.info(currentDate);
+    nearestNPerformanceLog.info("IndexType,TestId,MinNodeEntries,MaxNodeEntries,TreeVariant,TreeSize,QueryCount,AverageNearestNCount,AverageQueryTime");
+
+    containsPerformanceLog.info(currentDate);
+    containsPerformanceLog.info("IndexType,TestId,MinNodeEntries,MaxNodeEntries,TreeVariant,TreeSize,QueryCount,AverageContainsCount,AverageQueryTime");
+    
+    deletePerformanceLog.info(currentDate);
+    deletePerformanceLog.info("IndexType,TestId,MinNodeEntries,MaxNodeEntries,TreeVariant,FinalTreeSize,DeleteCount,AverageDeleteTime");
+    
+    // Test 1: add performance. 
+    // To acheive maximum add performance, it is necessary to minimize the number of
+    // node splits. Therefore set the MinNodeEntries to 1.
+    // do each test 3 times to see if there is any variance due to hotspot VM (or something else).
+    Properties p = new Properties();
+    
+    p.setProperty("MinNodeEntries", "1");
+    p.setProperty("MaxNodeEntries", "10");
+    p.setProperty("TreeVariant", "Linear");
+  
+    runScript("rtree.RTree",       p, "allqueries-10000", PERFORMANCE_TEST);
+    runScript("rtree.RTree",       p, "allqueries-10000", PERFORMANCE_TEST);
+    runScript("rtree.RTree",       p, "allqueries-10000", PERFORMANCE_TEST);
+    
+//    runScript("test.RTreeWrapper", p, "allqueries-10000", PERFORMANCE_TEST);  
+//    runScript("test.RTreeWrapper", p, "allqueries-10000", PERFORMANCE_TEST);  
+//    runScript("test.RTreeWrapper", p, "allqueries-10000", PERFORMANCE_TEST);  
+//    
+//    runScript("test.SILWrapper",   p, "allqueries-10000", PERFORMANCE_TEST);
+//    runScript("test.SILWrapper",   p, "allqueries-10000", PERFORMANCE_TEST);
+//    runScript("test.SILWrapper",   p, "allqueries-10000", PERFORMANCE_TEST);
+//    
+//    p.setProperty("TreeVariant", "Quadratic");
+//    runScript("test.SILWrapper",   p, "allqueries-10000", PERFORMANCE_TEST);
+//    runScript("test.SILWrapper",   p, "allqueries-10000", PERFORMANCE_TEST);
+//    runScript("test.SILWrapper",   p, "allqueries-10000", PERFORMANCE_TEST);
+//    
+//    p.setProperty("TreeVariant", "Rstar");
+//    runScript("test.SILWrapper",   p, "allqueries-10000", PERFORMANCE_TEST);
+//    runScript("test.SILWrapper",   p, "allqueries-10000", PERFORMANCE_TEST);
+//    runScript("test.SILWrapper",   p, "allqueries-10000", PERFORMANCE_TEST);
+  }
+
   /**
    * Tests performance of all the RTree variants for add() and intersect(),
    * for up to 10,000,000 entries
    */
-  public void testPerformance() {
+  public void XtestPerformance() {
     log.debug("testPerformance()");
     
     Date currentDate = new Date();
@@ -64,7 +121,7 @@ public class PerformanceTest extends SpatialIndexTest {
     deletePerformanceLog.info("IndexType,TestId,MinNodeEntries,MaxNodeEntries,TreeVariant,TreeSize,DeleteCount,AverageDeleteTime");
     
     Properties p = new Properties();
-    
+       
     // SimpleIndex and NullIndex do not use Min/MaxNodeEntries, so do them first.
     runScript("test.SimpleIndex", p, "allfunctions-100", PERFORMANCE_TEST);
     runScript("test.SimpleIndex", p, "allfunctions-1000", PERFORMANCE_TEST);
@@ -75,7 +132,7 @@ public class PerformanceTest extends SpatialIndexTest {
     runScript("test.NullIndex",   p, "allfunctions-100", PERFORMANCE_TEST);
     runScript("test.NullIndex",   p, "allfunctions-1000", PERFORMANCE_TEST);
     runScript("test.NullIndex",   p, "allfunctions-10000", PERFORMANCE_TEST);
-    runScript("test.NullIndex",   p, "allfunctions-100000", PERFORMANCE_TEST);
+    //runScript("test.NullIndex",   p, "allfunctions-100000", PERFORMANCE_TEST);
     
     p.setProperty("MinNodeEntries", "5");
     p.setProperty("MaxNodeEntries", "20");  // reasonable values?
@@ -84,30 +141,30 @@ public class PerformanceTest extends SpatialIndexTest {
     runScript("test.RTreeWrapper", p, "allfunctions-100", PERFORMANCE_TEST);
     runScript("test.RTreeWrapper", p, "allfunctions-1000", PERFORMANCE_TEST);
     runScript("test.RTreeWrapper", p, "allfunctions-10000", PERFORMANCE_TEST);
-    runScript("test.RTreeWrapper", p, "allfunctions-100000", PERFORMANCE_TEST);
+    //runScript("test.RTreeWrapper", p, "allfunctions-100000", PERFORMANCE_TEST);
       
     p.setProperty("TreeVariant", "Linear");
     runScript("rtree.RTree",       p, "allfunctions-100", PERFORMANCE_TEST);
     runScript("rtree.RTree",       p, "allfunctions-1000", PERFORMANCE_TEST);
     runScript("rtree.RTree",       p, "allfunctions-10000", PERFORMANCE_TEST);
-    runScript("rtree.RTree",       p, "allfunctions-100000", PERFORMANCE_TEST);
+    //runScript("rtree.RTree",       p, "allfunctions-100000", PERFORMANCE_TEST);
       
     p.setProperty("TreeVariant", "Linear");
     runScript("test.SILWrapper",   p, "allfunctions-100", PERFORMANCE_TEST);
     runScript("test.SILWrapper",   p, "allfunctions-1000", PERFORMANCE_TEST);
     runScript("test.SILWrapper",   p, "allfunctions-10000", PERFORMANCE_TEST);
-    runScript("test.SILWrapper",   p, "allfunctions-100000", PERFORMANCE_TEST);
+    //runScript("test.SILWrapper",   p, "allfunctions-100000", PERFORMANCE_TEST);
       
     p.setProperty("TreeVariant", "Quadratic");
     runScript("test.SILWrapper",   p, "allfunctions-100", PERFORMANCE_TEST);
     runScript("test.SILWrapper",   p, "allfunctions-1000", PERFORMANCE_TEST);
     runScript("test.SILWrapper",   p, "allfunctions-10000", PERFORMANCE_TEST);
-    runScript("test.SILWrapper",   p, "allfunctions-100000", PERFORMANCE_TEST);
+    //runScript("test.SILWrapper",   p, "allfunctions-100000", PERFORMANCE_TEST);
       
     p.setProperty("TreeVariant", "Rstar");
     runScript("test.SILWrapper",   p, "allfunctions-100", PERFORMANCE_TEST);
     runScript("test.SILWrapper",   p, "allfunctions-1000", PERFORMANCE_TEST);
     runScript("test.SILWrapper",   p, "allfunctions-10000", PERFORMANCE_TEST);
-    runScript("test.SILWrapper",   p, "allfunctions-100000", PERFORMANCE_TEST);
+    //runScript("test.SILWrapper",   p, "allfunctions-100000", PERFORMANCE_TEST);
   }
 }

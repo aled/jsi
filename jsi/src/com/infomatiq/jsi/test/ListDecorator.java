@@ -1,6 +1,6 @@
 //   ListDecorator.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002 Infomatiq Limited
+//   Copyright (C) 2002-2003 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -18,10 +18,10 @@
 
 package com.infomatiq.jsi.test;
 
+import gnu.trove.TIntProcedure;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.infomatiq.jsi.IntProcedure;
 import com.infomatiq.jsi.Point;
 import com.infomatiq.jsi.Rectangle;
 import com.infomatiq.jsi.SpatialIndex;
@@ -30,7 +30,7 @@ import com.infomatiq.jsi.SpatialIndex;
  * ListDecorator
  * 
  * @author aled.morris@infomatiq.co.uk
- * @version 1.0b2
+ * @version 1.0b3
  */
 public class ListDecorator {
  SpatialIndex m_si = null;
@@ -39,7 +39,7 @@ public class ListDecorator {
    m_si = si;
  }
  
- class AddToListProcedure implements IntProcedure {
+ class AddToListProcedure implements TIntProcedure {
    private List m_list = new ArrayList();
    
    public boolean execute(int id) {
@@ -65,6 +65,23 @@ public class ListDecorator {
   public List nearest(Point p, float furthestDistance) {
   	AddToListProcedure v = new AddToListProcedure();
     m_si.nearest(p, v, furthestDistance);	
+    return v.getList();
+  }
+  
+  /**
+   * Finds all rectangles that are nearest to the passed 
+   * rectangle.
+   * 
+   * @param  p The p point which this method finds
+   *           the nearest neighbours.
+   * 
+   * @return List of IDs of rectangles that are nearest
+   *         to the passed rectangle, ordered by distance (nearest first).
+   *         If multiple rectangles have the same distance, order by ID.
+   */
+  public List nearestN(Point p, int maxCount, float furthestDistance) {
+    AddToListProcedure v = new AddToListProcedure();
+    m_si.nearestN(p, v, maxCount, furthestDistance); 
     return v.getList();
   }
   

@@ -1,6 +1,6 @@
 //   Rectangle.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002 Infomatiq Limited
+//   Copyright (C) 2002-2003 Infomatiq Limited
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -18,31 +18,21 @@
 
 package com.infomatiq.jsi;
 
-import java.util.Arrays;
 
 /**
  * Currently hardcoded to 2 dimensions, but could be extended.
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b2
+ * @version 1.0b3
  */
 public class Rectangle {
-  /**
-   * Number of dimensions in a rectangle. In theory this
-   * could be exended to three or more dimensions.
-   */
-  public final static int DIMENSIONS = 2;
   
   /**
-   * array containing the minimum value for each dimension; ie { min(x), min(y) }
+   * use primitives instead of arrays for the coordinates of the rectangle,
+   * to reduce memory requirements.
    */
-  public float[] max;
+  public float minX, minY, maxX, maxY;
   
-  /**
-   * array containing the maximum value for each dimension; ie { max(x), max(y) }
-   */
-  public float[] min;
-
   /**
    * Constructor.
    * 
@@ -52,29 +42,9 @@ public class Rectangle {
    * @param y2 (see x2)
    */
   public Rectangle(float x1, float y1, float x2, float y2) {
-    min = new float[DIMENSIONS];
-    max = new float[DIMENSIONS]; 
     set(x1, y1, x2, y2);
   }
 
-  /**
-   * Constructor.
-   * 
-   * @param min array containing the minimum value for each dimension; ie { min(x), min(y) }
-   * @param max array containing the maximum value for each dimension; ie { max(x), max(y) }
-   */  
-  public Rectangle(float[] min, float[] max) {
-    if (min.length != DIMENSIONS || max.length != DIMENSIONS) {
-      throw new RuntimeException("Error in Rectangle constructor: " +
-                "min and max arrays must be of length " + DIMENSIONS); 
-    }
-   
-    this.min = new float[DIMENSIONS];
-    this.max = new float[DIMENSIONS];
-    
-    set(min, max);
-  }
-  
  /**
    * Sets the size of the rectangle.
    * 
@@ -84,30 +54,29 @@ public class Rectangle {
    * @param y2 (see x2)
    */
   public void set(float x1, float y1, float x2, float y2) {
-    min[0] = Math.min(x1, x2);
-    min[1] = Math.min(y1, y2);
-    max[0] = Math.max(x1, x2);        
-    max[1] = Math.max(y1, y2); 
+    minX = Math.min(x1, x2);
+    maxX = Math.max(x1, x2);
+    minY = Math.min(y1, y2);
+    maxY = Math.max(y1, y2);
   }
   
   /**
-   * Sets the size of the rectangle.
-   * 
-   * @param min array containing the minimum value for each dimension; ie { min(x), min(y) }
-   * @param max array containing the maximum value for each dimension; ie { max(x), max(y) }
+   * Sets the size of this rectangle to equal the passed rectangle.
    */
-  public void set(float[] min, float[] max) {
-    System.arraycopy(min, 0, this.min, 0, DIMENSIONS);
-    System.arraycopy(max, 0, this.max, 0, DIMENSIONS);
+  public void set(Rectangle r) {
+    minX = r.minX;
+    minY = r.minY;
+    maxX = r.maxX;
+    maxY = r.maxY;  
   }
-  
+   
   /**
    * Make a copy of this rectangle
    * 
    * @return copy of this rectangle
    */
   public Rectangle copy() {
-    return new Rectangle(min, max); 
+    return new Rectangle(minX, minY, maxX, maxY); 
   }
   
   /**
@@ -115,12 +84,7 @@ public class Rectangle {
    * edge of the passed rectangle
    */
   public boolean edgeOverlaps(Rectangle r) {
-    for (int i = 0; i < DIMENSIONS; i++) {
-      if (min[i] == r.min[i] || max[i] == r.max[i]) {
-        return true; 
-      } 
-    }  
-    return false;
+    return minX == r.minX || maxX == r.maxX || minY == r.minY || maxY == r.maxY;
   }
   
   /**
@@ -131,16 +95,28 @@ public class Rectangle {
    * @return true if the rectangles intersect, false if they do not intersect
    */
   public boolean intersects(Rectangle r) {
-    // Every dimension must intersect. If any dimension
-    // does not intersect, return false immediately.
-    for (int i = 0; i < DIMENSIONS; i++) {
-      if (max[i] < r.min[i] || min[i] > r.max[i]) {
-        return false;
-      }
-    }
-    return true;
+    return maxX >= r.minX && minX <= r.maxX && maxY >= r.minY && minY <= r.maxY;
   }
  
+  /**
+   * Determine whether or not two rectangles intersect
+   * 
+   * @param r1MinX minimum X coordinate of rectangle 1
+   * @param r1MinY minimum Y coordinate of rectangle 1
+   * @param r1MaxX maximum X coordinate of rectangle 1
+   * @param r1MaxY maximum Y coordinate of rectangle 1
+   * @param r2MinX minimum X coordinate of rectangle 2
+   * @param r2MinY minimum Y coordinate of rectangle 2
+   * @param r2MaxX maximum X coordinate of rectangle 2
+   * @param r2MaxY maximum Y coordinate of rectangle 2
+   * 
+   * @return true if r1 intersects r2, false otherwise.
+   */
+  static public boolean intersects(float r1MinX, float r1MinY, float r1MaxX, float r1MaxY,
+                                 float r2MinX, float r2MinY, float r2MaxX, float r2MaxY) { 
+    return r1MaxX >= r2MinX && r1MinX <= r2MaxX && r1MaxY >= r2MinY && r1MinY <= r2MaxY;                           
+  }
+  
   /**
    * Determine whether this rectangle contains the passed rectangle
    * 
@@ -150,12 +126,26 @@ public class Rectangle {
    *         it does not
    */
   public boolean contains(Rectangle r) {
-    for (int i = 0; i < DIMENSIONS; i++) {
-      if (max[i] < r.max[i] || min[i] > r.min[i]) {
-        return false;
-      }
-    }
-    return true;     
+    return maxX >= r.maxX && minX <= r.minX && maxY >= r.maxY && minY <= r.minY;   
+  }
+  
+  /**
+   * Determine whether or not one rectangle contains another.
+   * 
+   * @param r1MinX minimum X coordinate of rectangle 1
+   * @param r1MinY minimum Y coordinate of rectangle 1
+   * @param r1MaxX maximum X coordinate of rectangle 1
+   * @param r1MaxY maximum Y coordinate of rectangle 1
+   * @param r2MinX minimum X coordinate of rectangle 2
+   * @param r2MinY minimum Y coordinate of rectangle 2
+   * @param r2MaxX maximum X coordinate of rectangle 2
+   * @param r2MaxY maximum Y coordinate of rectangle 2
+   * 
+   * @return true if r1 contains r2, false otherwise.
+   */
+  static public boolean contains(float r1MinX, float r1MinY, float r1MaxX, float r1MaxY,
+                                 float r2MinX, float r2MinY, float r2MaxX, float r2MaxY) {
+    return r1MaxX >= r2MaxX && r1MinX <= r2MinX && r1MaxY >= r2MaxY && r1MinY <= r2MinY;                              
   }
  
   /**
@@ -167,12 +157,7 @@ public class Rectangle {
    *         it does not
    */
   public boolean containedBy(Rectangle r) {
-    for (int i = 0; i < DIMENSIONS; i++) {
-      if (max[i] > r.max[i] || min[i] < r.min[i]) {
-        return false;
-      }
-    }
-    return true;  
+    return r.maxX >= maxX && r.minX <= minX && r.maxY >= maxY && r.minY <= minY;   
   }
   
   /**
@@ -185,14 +170,87 @@ public class Rectangle {
    */
   public float distance(Point p) {
     float distanceSquared = 0;
-    for (int i = 0; i < DIMENSIONS; i++) {
-      float greatestMin = Math.max(min[i], p.coordinates[i]);
-      float leastMax    = Math.min(max[i], p.coordinates[i]);
-      if (greatestMin > leastMax) {
-        distanceSquared += ((greatestMin - leastMax) * (greatestMin - leastMax)); 
-      }
+    
+    float temp = minX - p.x;
+    if (temp < 0) {
+      temp = p.x - maxX;
     }
+    
+    if (temp > 0) {
+      distanceSquared += (temp * temp);
+    }
+
+    temp = minY - p.y;
+    if (temp < 0) {
+      temp = p.y - maxY;
+    }
+
+    if (temp > 0) {
+      distanceSquared += (temp * temp);
+    }
+    
+        
     return (float) Math.sqrt(distanceSquared);
+  }
+  
+  /**
+   * Return the distance between a rectangle and a point.
+   * If the rectangle contains the point, the distance is zero.
+   * 
+   * @param minX minimum X coordinate of rectangle
+   * @param minY minimum Y coordinate of rectangle
+   * @param maxX maximum X coordinate of rectangle
+   * @param maxY maximum Y coordinate of rectangle
+   * @param pX X coordinate of point
+   * @param pY Y coordinate of point
+   * 
+   * @return distance beween this rectangle and the passed point.
+   */
+  static public float distance(float minX, float minY, float maxX, float maxY, float pX, float pY) {
+    float distanceSquared = 0;
+    
+    float temp = minX - pX;
+    if (temp < 0) {
+      temp = pX - maxX;
+    }
+    
+    if (temp > 0) {
+      distanceSquared += (temp * temp);
+    }
+
+    temp = minY - pY;
+    if (temp < 0) {
+      temp = pY - maxY;
+    }
+
+    if (temp > 0) {
+      distanceSquared += (temp * temp);
+    }
+        
+    return (float) Math.sqrt(distanceSquared);
+  }
+  
+  static public float distanceSq(float minX, float minY, float maxX, float maxY, float pX, float pY) {
+    float distanceSqX = 0;
+    float distanceSqY = 0;
+    
+    if (minX > pX) {
+      distanceSqX = minX - pX;
+      distanceSqX *= distanceSqX;
+    } else if (pX > maxX) {
+      distanceSqX = pX - maxX;
+      distanceSqX *= distanceSqX;
+    }
+   
+    if (minY > pY) {
+      distanceSqY = minY - pY;
+      distanceSqY *= distanceSqY;
+    } else if (pY > maxY) {
+      distanceSqY = pY - maxY;
+      distanceSqY *= distanceSqY;
+    }
+   
+    return distanceSqX + distanceSqY;
   }
   
   /**
@@ -206,50 +264,19 @@ public class Rectangle {
 
   public float distance(Rectangle r) {
     float distanceSquared = 0;
-    for (int i = 0; i < DIMENSIONS; i++) {
-      float greatestMin = Math.max(min[i], r.min[i]);
-      float leastMax    = Math.min(max[i], r.max[i]);
-      if (greatestMin > leastMax) {
-        distanceSquared += ((greatestMin - leastMax) * (greatestMin - leastMax)); 
-      }
+    float greatestMin = Math.max(minX, r.minX);
+    float leastMax    = Math.min(maxX, r.maxX);
+    if (greatestMin > leastMax) {
+      distanceSquared += ((greatestMin - leastMax) * (greatestMin - leastMax)); 
+    }
+    greatestMin = Math.max(minY, r.minY);
+    leastMax    = Math.min(maxY, r.maxY);
+    if (greatestMin > leastMax) {
+      distanceSquared += ((greatestMin - leastMax) * (greatestMin - leastMax)); 
     }
     return (float) Math.sqrt(distanceSquared);
   }
-   
-  /**
-   * Return the squared distance from this rectangle to the passed point
-   */
-  private float distanceSquared(int dimension, float point) {
-    float distanceSquared = 0;
-    float tempDistance = point - max[dimension];
-    for (int i = 0; i < 2; i++) {
-      if (tempDistance > 0) {
-        distanceSquared = (tempDistance * tempDistance);
-        break;
-      } 
-      tempDistance = min[dimension] - point;
-    }
-    return distanceSquared;
-  }
-  
-  /**
-   * Return the furthst possible distance between this rectangle and
-   * the passed rectangle. 
-   * 
-   * Find the distance between this rectangle and each corner of the
-   * passed rectangle, and use the maximum.
-   *
-   */
-  public float furthestDistance(Rectangle r) {
-     float distanceSquared = 0;
-     
-     for (int i = 0; i < DIMENSIONS; i++) {
-       distanceSquared += Math.max(distanceSquared(i, r.min[i]), distanceSquared(i, r.max[i]));
-     }
-     
-     return (float) Math.sqrt(distanceSquared);
-  }
-  
+
   /**
    * Calculate the area by which this rectangle would be enlarged if
    * added to the passed rectangle. Neither rectangle is altered.
@@ -257,12 +284,43 @@ public class Rectangle {
    * @param r Rectangle to union with this rectangle, in order to 
    *          compute the difference in area of the union and the
    *          original rectangle
+   * 
+   * @return enlargement
    */
   public float enlargement(Rectangle r) {
-    float enlargedArea = (Math.max(max[0], r.max[0]) - Math.min(min[0], r.min[0])) *
-                         (Math.max(max[1], r.max[1]) - Math.min(min[1], r.min[1]));
+    float enlargedArea = (Math.max(maxX, r.maxX) - Math.min(minX, r.minX)) *
+                         (Math.max(maxY, r.maxY) - Math.min(minY, r.minY));
                          
     return enlargedArea - area();
+  }
+  
+  /**
+    * Calculate the area by which a rectangle would be enlarged if
+    * added to the passed rectangle..
+    * 
+    * @param r1MinX minimum X coordinate of rectangle 1
+    * @param r1MinY minimum Y coordinate of rectangle 1
+    * @param r1MaxX maximum X coordinate of rectangle 1
+    * @param r1MaxY maximum Y coordinate of rectangle 1
+    * @param r2MinX minimum X coordinate of rectangle 2
+    * @param r2MinY minimum Y coordinate of rectangle 2
+    * @param r2MaxX maximum X coordinate of rectangle 2
+    * @param r2MaxY maximum Y coordinate of rectangle 2
+    * 
+    * @return enlargement
+    */
+  static public float enlargement(float r1MinX, float r1MinY, float r1MaxX, float r1MaxY,
+                                  float r2MinX, float r2MinY, float r2MaxX, float r2MaxY) { 
+    float r1Area = (r1MaxX - r1MinX) * (r1MaxY - r1MinY);                    
+    
+    if (r2MinX < r1MinX) r1MinX = r2MinX;   
+    if (r2MinY < r1MinY) r1MinY = r2MinY;   
+    if (r2MaxX > r1MaxX) r1MaxX = r2MaxX;                               
+    if (r2MaxY > r1MaxY) r1MaxY = r2MaxY;
+    
+    float r1r2UnionArea = (r1MaxX - r1MinX) * (r1MaxY - r1MinY);
+                                  
+    return r1r2UnionArea - r1Area;                              
   }
   
   /**
@@ -271,7 +329,21 @@ public class Rectangle {
    * @return The area of this rectangle
    */
   public float area() {
-    return (max[0] - min[0]) * (max[1] - min[1]);
+    return (maxX - minX) * (maxY - minY);
+  }
+  
+  /**
+   * Compute the area of a rectangle.
+   * 
+   * @param minX the minimum X coordinate of the rectangle
+   * @param minY the minimum Y coordinate of the rectangle
+   * @param maxX the maximum X coordinate of the rectangle
+   * @param maxY the maximum Y coordinate of the rectangle
+   * 
+   * @return The area of the rectangle
+   */
+  static public float area(float minX, float minY, float maxX, float maxY) {
+    return (maxX - minX) * (maxY - minY);
   }
   
   /**
@@ -281,14 +353,10 @@ public class Rectangle {
    * @param r Rectangle to add to this rectangle
    */
   public void add(Rectangle r) {
-    for (int i = 0; i < DIMENSIONS; i++) {
-      if (r.min[i] < min[i]) {
-        min[i] = r.min[i];
-      }
-      if (r.max[i] > max[i]) {
-        max[i] = r.max[i];
-      }
-    }
+    if (r.minX < minX) minX = r.minX;
+    if (r.maxX > maxX) maxX = r.maxX;
+    if (r.minY < minY) minY = r.minY;
+    if (r.maxY > maxY) maxY = r.maxY;
   }
   
   /**
@@ -313,7 +381,7 @@ public class Rectangle {
     boolean equals = false;
     if (o instanceof Rectangle) {
       Rectangle r = (Rectangle) o;
-      if (Arrays.equals(r.min, min) && Arrays.equals(r.max, max)) {
+      if (minX == r.minX && minY == r.minY && maxX == r.maxX && maxY == r.maxY) {
         equals = true;
       }
     } 
@@ -339,26 +407,6 @@ public class Rectangle {
    * @return String String representation of this rectangle.
    */
   public String toString() {
-    StringBuffer sb = new StringBuffer();
-    
-    // min coordinates
-    sb.append('(');
-    for (int i = 0; i < DIMENSIONS; i++) {
-      if (i > 0) {
-        sb.append(", ");
-      }
-      sb.append(min[i]);
-    } 
-    sb.append("), (");
-    
-    // max coordinates
-    for (int i = 0; i < DIMENSIONS; i++) {
-      if (i > 0) {
-        sb.append(", ");
-      }
-      sb.append(max[i]);
-    } 
-    sb.append(')');
-    return sb.toString();
+    return "(" + minX + ", " + minY + "), (" + maxX + ", " + maxY + ")";
   }
 }

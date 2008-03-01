@@ -1,6 +1,6 @@
 //   SILWrapper.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002 Infomatiq Limited
+//   Copyright (C) 2002-2003 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -18,9 +18,12 @@
 
 package com.infomatiq.jsi.test;
 
+import gnu.trove.TIntProcedure;
+
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+
 import sil.rtree.RTree;
 import sil.spatialindex.IData;
 import sil.spatialindex.INode;
@@ -31,7 +34,6 @@ import sil.storagemanager.IStorageManager;
 import sil.storagemanager.MemoryStorageManager;
 import sil.storagemanager.PropertySet;
 
-import com.infomatiq.jsi.IntProcedure;
 import com.infomatiq.jsi.Point;
 import com.infomatiq.jsi.Rectangle;
 import com.infomatiq.jsi.SpatialIndex;
@@ -50,16 +52,16 @@ public class SILWrapper implements SpatialIndex {
   private static final Logger log = 
     Logger.getLogger(SILWrapper.class.getName());
     
-  private static final String version = "1.0b2";
+  private static final String version = "1.0b3";
   
   private IStorageManager storageManager = null; 
   private ISpatialIndex tree = null;
   private int size = 0;
   
   class IntProcedureVisitor implements IVisitor {
-    private IntProcedure m_intProcedure = null;
+    private TIntProcedure m_intProcedure = null;
     
-    public IntProcedureVisitor(IntProcedure ip) {
+    public IntProcedureVisitor(TIntProcedure ip) {
       m_intProcedure = ip;
     }
     
@@ -110,33 +112,42 @@ public class SILWrapper implements SpatialIndex {
   /**
    * @see com.infomatiq.jsi.SpatialIndex#nearest(Point p, IntProcedure ip, float)
    */
-  public void nearest(Point p , IntProcedure ip, float furthestDistance) {
+  public void nearest(Point p, TIntProcedure v, float furthestDistance) {
     tree.nearestNeighborQuery(1, 
-                              new sil.spatialindex.Point(p.coordinates),  
-                              new IntProcedureVisitor(ip));
+                              new sil.spatialindex.Point(new double[] {p.x, p.y}),  
+                              new IntProcedureVisitor(v));
+  }
+
+  /**
+   * @see com.infomatiq.jsi.SpatialIndex#nearestN(com.infomatiq.jsi.Point, com.infomatiq.jsi.IntProcedure, int, float)
+   */
+  public void nearestN(Point p, TIntProcedure v, int n, float furthestDistance) {
+    tree.nearestNeighborQuery(n, 
+                              new sil.spatialindex.Point(new double[] {p.x, p.y}),  
+                              new IntProcedureVisitor(v));
   }
 
   /**
    * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, IntProcedure)
    */
-  public void intersects(Rectangle r, IntProcedure ip) {
-    Region region = new Region(r.min, r.max);  
-    tree.intersectionQuery(region, new IntProcedureVisitor(ip));
+  public void intersects(Rectangle r, TIntProcedure v) {
+    Region region = new Region(new double[] {r.minX, r.minY}, new double[] {r.maxX, r.maxY});  
+    tree.intersectionQuery(region, new IntProcedureVisitor(v));
   }
 
   /**
    * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, IntProcedure)
    */
-  public void contains(Rectangle r, IntProcedure ip) {
-    Region region = new Region(r.min, r.max);
-    tree.containmentQuery(region, new IntProcedureVisitor(ip));
+  public void contains(Rectangle r, TIntProcedure v) {
+    Region region = new Region(new double[] {r.minX, r.minY}, new double[] {r.maxX, r.maxY});
+    tree.containmentQuery(region, new IntProcedureVisitor(v));
   }
 
   /**
    * @see com.infomatiq.jsi.SpatialIndex#add(Rectangle, int)
    */
   public void add(Rectangle r, int id) {
-    Region region = new Region(r.min, r.max);
+    Region region = new Region(new double[] {r.minX, r.minY}, new double[] {r.maxX, r.maxY});
     tree.insertData(null, region, id);
     size++;
   }
@@ -145,7 +156,7 @@ public class SILWrapper implements SpatialIndex {
    * @see com.infomatiq.jsi.SpatialIndex#delete(Rectangle, int)
    */
   public boolean delete(Rectangle r, int id) {
-    Region region = new Region(r.min, r.max);
+    Region region = new Region(new double[] {r.minX, r.minY}, new double[] {r.maxX, r.maxY});
     if (tree.deleteData(region, id)) {
       size--;
       return true;

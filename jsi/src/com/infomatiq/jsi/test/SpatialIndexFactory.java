@@ -1,6 +1,6 @@
 //   SpatialIndexFactory.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002 Infomatiq Limited
+//   Copyright (C) 2002-2003 Infomatiq Limited.
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@ import com.infomatiq.jsi.SpatialIndex;
  * Factory class used to create instances of spatial indexes
  * 
  * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b2
+ * @version 1.0b3
  */
 public class SpatialIndexFactory {
   

@@ -37,7 +37,14 @@ nearestRandom    2000   400
 nearestRandom    2000   800
 nearestRandom    2000   1600
 #
-randomize         8
+randomize        8
+nearestNRandom   2000   10000
+nearestNRandom   2000   20000
+nearestNRandom   2000   40000
+nearestNRandom   2000   80000
+nearestNRandom   2000   160000
+#
+randomize        9
 containsRandom   2000   100
 containsRandom   2000   200
 containsRandom   2000   400
