@@ -31,11 +31,11 @@ import com.infomatiq.jsi.SpatialIndex;
  * The purpose of this class is to measure the overhead of the
  * testing framework.
  * 
- * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b4
+ * @author  aled@sourceforge.net
+ * @version 1.0b5-DEV
  */
 public class NullIndex implements SpatialIndex {
-  private static final String version = "1.0b4";
+  private static final String version = "1.0b5-DEV";
     
   /**
    * @see com.infomatiq.jsi.SpatialIndex#init(Properties)

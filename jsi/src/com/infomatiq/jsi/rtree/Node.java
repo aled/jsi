@@ -22,7 +22,7 @@ package com.infomatiq.jsi.rtree;
  * <p>Used by RTree. There are no public methods in this class.</p>
  * 
  * @author aled.morris@infomatiq.co.uk
- * @version 1.0b4
+ * @version 1.0b5-DEV
  */
 public class Node {
   int nodeId = 0;

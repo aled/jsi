@@ -21,8 +21,8 @@ package com.infomatiq.jsi;
 /**
  * Currently hardcoded to 2 dimensions, but could be extended.
  * 
- * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b4
+ * @author  aled@sourceforge.net
+ * @version 1.0b5-DEV
  */
 public class Point {
   /**
@@ -39,5 +39,34 @@ public class Point {
   public Point(float x, float y) {
     this.x = x; 
     this.y = y;
+  }
+  
+  /**
+   * Copy from another point into this one
+   */
+  public void set(Point other) {
+    x = other.x;
+    y = other.y;
+  }
+  
+  /**
+   * Print as a string in format "(x, y)"
+   */
+  public String toString() {
+    return "(" + x + ", " + y + ")";
+  }
+  
+  /**
+   * @return X coordinate rounded to an int
+   */
+  public int xInt() {
+    return (int) Math.round(x);
+  }
+  
+  /**
+   * @return Y coordinate rounded to an int
+   */
+  public int yInt() {
+    return (int) Math.round(y);
   }
 }

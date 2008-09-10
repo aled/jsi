@@ -7,7 +7,7 @@ nearestNRandom 10000   32  10000
 nearestNRandom 10000   256 10000
 
 distanceQuantizer 10000
-addRandom       5000   500  10000
+addRandom       5000   5000 10000
 nearestNRandom 10000   1    10000
 nearestNRandom 10000   2    10000
 nearestNRandom 10000   64   10000

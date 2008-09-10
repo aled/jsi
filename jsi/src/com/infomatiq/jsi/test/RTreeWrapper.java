@@ -34,11 +34,11 @@ import com.infomatiq.jsi.rtree.RTree;
  * the SILWrapper class, so that performance comparisons
  * can be made.
  * 
- * @author aled.morris@infomatiq.co.uk
+ * @author aled@sourceforge.net
  * @version $Revision$
  */
 public class RTreeWrapper implements SpatialIndex {
-  private static final String version = "1.0b4";
+  private static final String version = "1.0b5-DEV";
   
   private RTree tree;
   

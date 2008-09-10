@@ -1,8 +1,12 @@
-randomize            1
-addRandom        200 0 235.4
-randomize            1
-deleteRandom     100 0 235.4
-randomize       123456
-deleteRandom     100 0 235.4
-randomize            2
-intersectRandom  100 0 235.4
+# specific test to isolate bug whereby tree was not shrunk correctly
+deleteAllRandom  1 100 0 235.4
+
+# original tests
+#randomize            1
+#addRandom        200 0 235.4
+#randomize            1
+#deleteRandom     100 0 235.4
+#randomize       123456
+#deleteRandom     100 0 235.4
+#randomize            2
+#intersectRandom  100 0 235.4

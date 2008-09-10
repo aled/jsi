@@ -29,8 +29,8 @@ import org.apache.log4j.Logger;
  * Reference results are generated using alternative spatial index
  * implementations, specifically SimpleIndex and Spatial Index Library.
  * 
- * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b4
+ * @author  aled@sourceforge.net
+ * @version 1.0b5-DEV
  */
 public class ReferenceGenerateTest extends SpatialIndexTest {
 
@@ -40,7 +40,7 @@ public class ReferenceGenerateTest extends SpatialIndexTest {
     super(s);
   }
   
-  public void xtestReferenceGenerateAllFunctions() {
+  public void testReferenceGenerateAllFunctions() {
     log.debug("testReferenceGenerateAllFunctions()");
     
     Properties p = new Properties();
@@ -62,7 +62,7 @@ public class ReferenceGenerateTest extends SpatialIndexTest {
  //   runScript("test.SILWrapper", p, "allfunctions-100000", REFERENCE_GENERATE);
   }
   
-  public void xtestReferenceGenerateDelete() {
+  public void testReferenceGenerateDelete() {
     log.debug("testReferenceGenerateDelete()");
    
     Properties p = new Properties();
@@ -80,7 +80,7 @@ public class ReferenceGenerateTest extends SpatialIndexTest {
   //  runScript("test.SimpleIndex", p, "delete-100000", REFERENCE_GENERATE); 
   }
   
-  public void xtestReferenceGenerateIntersect() {
+  public void testReferenceGenerateIntersect() {
     log.debug("testReferenceGenerateIntersect()");
     
     Properties p = new Properties();
@@ -102,7 +102,7 @@ public class ReferenceGenerateTest extends SpatialIndexTest {
   //  runScript("test.SILWrapper",  p, "intersect-100000", REFERENCE_GENERATE);
   }
   
-  public void xtestReferenceGenerateNearest() {
+  public void testReferenceGenerateNearest() {
     log.debug("testReferenceGenerateNearest()");
     
     Properties p = new Properties();
@@ -132,11 +132,11 @@ public class ReferenceGenerateTest extends SpatialIndexTest {
     log.info("Creating reference testNearestN results for 100 entries.");
     runScript("test.SimpleIndex",  p, "nearestN-100", REFERENCE_GENERATE);
     
-//    log.info("Creating reference testNearestN results for 1000 entries.");
-//    runScript("test.SimpleIndex",  p, "nearestN-1000", REFERENCE_GENERATE);
+    log.info("Creating reference testNearestN results for 1000 entries.");
+    runScript("test.SimpleIndex",  p, "nearestN-1000", REFERENCE_GENERATE);
     
-//    log.info("Creating reference testNearestN results for 10,000 entries.");
-//    runScript("test.SimpleIndex",  p, "nearestN-10000", REFERENCE_GENERATE);
+    log.info("Creating reference testNearestN results for 10,000 entries.");
+    runScript("test.SimpleIndex",  p, "nearestN-10000", REFERENCE_GENERATE);
         
 //    p.setProperty("MinNodeEntries", "1");
 //    p.setProperty("MaxNodeEntries", "13"); // different to other tests
@@ -146,8 +146,8 @@ public class ReferenceGenerateTest extends SpatialIndexTest {
 //    runScript("test.SILWrapper",   p, "nearest-100000", REFERENCE_GENERATE);
   }
   
-  
-  public void xtestReferenceGenerateContains() {
+ 
+  public void testReferenceGenerateContains() {
     log.debug("testReferenceGenerateContains()");
     
     Properties p = new Properties();

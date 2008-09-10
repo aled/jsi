@@ -44,7 +44,7 @@ import com.infomatiq.jsi.SpatialIndex;
  * 
  * Used to generate test results and performance comparisons.
  * 
- * @author aled.morris@infomatiq.co.uk
+ * @author aled@sourceforge.net
  * @version $Revision$
  */
 public class SILWrapper implements SpatialIndex {
@@ -52,7 +52,7 @@ public class SILWrapper implements SpatialIndex {
   private static final Logger log = 
     Logger.getLogger(SILWrapper.class.getName());
     
-  private static final String version = "1.0b4";
+  private static final String version = "1.0b5-DEV";
   
   private IStorageManager storageManager = null; 
   private ISpatialIndex tree = null;
@@ -158,7 +158,7 @@ public class SILWrapper implements SpatialIndex {
    */
   public void add(Rectangle r, int id) {
     Region region = new Region(new double[] {r.minX, r.minY}, new double[] {r.maxX, r.maxY});
-    tree.insertData(null, region, id);
+    tree.insertData(null, region, (int)id);
     size++;
   }
 
@@ -167,7 +167,7 @@ public class SILWrapper implements SpatialIndex {
    */
   public boolean delete(Rectangle r, int id) {
     Region region = new Region(new double[] {r.minX, r.minY}, new double[] {r.maxX, r.maxY});
-    if (tree.deleteData(region, id)) {
+    if (tree.deleteData(region, (int)id)) {
       size--;
       return true;
     }

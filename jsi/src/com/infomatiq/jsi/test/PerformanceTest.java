@@ -29,8 +29,8 @@ import org.apache.log4j.Logger;
  * Generates results used for comparing the performance of the Java Spatial 
  * Index library against alternative implementations.
  * 
- * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b4
+ * @author  aled@sourceforge.net
+ * @version 1.0b5-DEV
  */
 public class PerformanceTest extends SpatialIndexTest {
 
@@ -141,7 +141,7 @@ public class PerformanceTest extends SpatialIndexTest {
     runScript("test.SimpleIndex", p, "allfunctions-100", PERFORMANCE_TEST);
     runScript("test.SimpleIndex", p, "allfunctions-1000", PERFORMANCE_TEST);
     runScript("test.SimpleIndex", p, "allfunctions-10000", PERFORMANCE_TEST);
-    // Only go up to 10000 for simple index, as it takes too long
+    // Only go up to 10000 for simple index, as it takes too int
     
     p.setProperty("TreeVariant", "null");
     runScript("test.NullIndex",   p, "allfunctions-100", PERFORMANCE_TEST);

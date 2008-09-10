@@ -23,7 +23,7 @@ import gnu.trove.TIntArrayList;
 import gnu.trove.TIntProcedure;
 
 /**
- * @author aled.morris@infomatiq.co.uk
+ * @author aled@sourceforge.net
  * 
  * Sorted List, backed by a TArrayList.
  * 
@@ -103,7 +103,7 @@ public class SortedList {
   }
   
   /**
-   * return the lowest priority currently stored, or Float.NEGATIVE_INFINITY if no
+   * return the lowest priority currently stored, or float.NEGATIVE_INFINITY if no
    * entries are stored
    */
   public float getLowestPriority() {

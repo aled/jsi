@@ -19,11 +19,12 @@
 package com.infomatiq.jsi;
 
 
+
 /**
  * Currently hardcoded to 2 dimensions, but could be extended.
  * 
- * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b4
+ * @author  aled@sourceforge.net
+ * @version 1.0b5-DEV
  */
 public class Rectangle {
   
@@ -32,6 +33,13 @@ public class Rectangle {
    * to reduce memory requirements.
    */
   public float minX, minY, maxX, maxY;
+  
+  public Rectangle() {
+    minX = Float.MAX_VALUE;
+    maxX = Float.MIN_VALUE;
+    minY = Float.MAX_VALUE;
+    maxY = Float.MIN_VALUE;
+  }
   
   /**
    * Constructor.
@@ -206,27 +214,7 @@ public class Rectangle {
    * @return distance beween this rectangle and the passed point.
    */
   static public float distance(float minX, float minY, float maxX, float maxY, float pX, float pY) {
-    float distanceSquared = 0;
-    
-    float temp = minX - pX;
-    if (temp < 0) {
-      temp = pX - maxX;
-    }
-    
-    if (temp > 0) {
-      distanceSquared += (temp * temp);
-    }
-
-    temp = minY - pY;
-    if (temp < 0) {
-      temp = pY - maxY;
-    }
-
-    if (temp > 0) {
-      distanceSquared += (temp * temp);
-    }
-        
-    return (float) Math.sqrt(distanceSquared);
+    return (float) Math.sqrt(distanceSq(minX, minY, maxX, maxY, pX, pY));
   }
   
   static public float distanceSq(float minX, float minY, float maxX, float maxY, float pX, float pY) {
@@ -359,6 +347,19 @@ public class Rectangle {
   }
   
   /**
+   * Computes the union of this rectangle and the passed point, storing
+   * the result in this rectangle.
+   * 
+   * @param p Point to add to this rectangle
+   */
+  public void add(Point p) {
+    if (p.x < minX) minX = p.x;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.y > maxY) maxY = p.y;
+  }
+  
+  /**
    * Find the the union of this rectangle and the passed rectangle.
    * Neither rectangle is altered
    * 
@@ -408,4 +409,25 @@ public class Rectangle {
   public String toString() {
     return "(" + minX + ", " + minY + "), (" + maxX + ", " + maxY + ")";
   }
+  
+  /**
+   * Utility methods (not used by JSI); added to 
+   * enable this to be used as a generic rectangle class 
+   */
+  public float width() {
+    return maxX - minX;
+  }
+  
+  public float height() {
+    return maxY - minY;
+  }
+  
+  public float aspectRatio() {
+    return width() / height();
+  }
+  
+  public Point centre() {
+    return new Point((minX + maxX) / 2, (minY + maxY) / 2);
+  }
+  
 }

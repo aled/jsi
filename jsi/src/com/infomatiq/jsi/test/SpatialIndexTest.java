@@ -46,8 +46,8 @@ import com.infomatiq.jsi.SpatialIndex;
 /**
  * SpatialIndexTest
  * 
- * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b4
+ * @author  aled@sourceforge.net
+ * @version 1.0b5-DEV
  */
 public class SpatialIndexTest extends TestCase {
   
@@ -75,8 +75,6 @@ public class SpatialIndexTest extends TestCase {
   protected static final int PERFORMANCE_TEST = 0;
   protected static final int REFERENCE_COMPARISON_TEST = 1;
   protected static final int REFERENCE_GENERATE = 2;
-  
-  private DecimalFormat decimalFormat0000 = new DecimalFormat("0000");
   
   private float canvasSize = 100000F;
   
@@ -227,7 +225,7 @@ public class SpatialIndexTest extends TestCase {
           if (operation.equals("DISTANCEQUANTIZER")) {
             quantizer = Integer.parseInt(st.nextToken());
           } else if (operation.equals("RANDOMIZE")) {
-            random.setSeed(Long.parseLong(st.nextToken()));
+            random.setSeed(Integer.parseInt(st.nextToken()));
             if (testType == REFERENCE_COMPARISON_TEST || testType == REFERENCE_GENERATE) {
               writeOutput(outputBuffer.toString() + " : OK", outputFile, referenceFile);
             }
@@ -366,6 +364,7 @@ public class SpatialIndexTest extends TestCase {
               float y = (float) random.nextGaussian() * canvasSize;
               
               List l = ld.nearestN(new Point(x, y), n, Float.POSITIVE_INFINITY);
+              
               totalEntriesReturned += l.size();
               
               if (testType == REFERENCE_COMPARISON_TEST || testType == REFERENCE_GENERATE) {
@@ -378,6 +377,7 @@ public class SpatialIndexTest extends TestCase {
                   tempBuffer.append(' ');
                   tempBuffer.append((Integer)i.next()).toString();
                 }
+              
                 writeOutput(tempBuffer.toString(), outputFile, referenceFile);
               }
             } 

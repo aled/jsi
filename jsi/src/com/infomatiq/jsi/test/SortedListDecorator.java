@@ -28,8 +28,8 @@ import com.infomatiq.jsi.SpatialIndex;
 /**
  * SortedListDecorator
  * 
- * @author aled.morris@infomatiq.co.uk
- * @version 1.0b4
+ * @author aled@sourceforge.net
+ * @version 1.0b5-DEV
  */
 public class SortedListDecorator extends ListDecorator {
    

@@ -2,24 +2,10 @@
 
 <!-- ANT script to build JSI -->
 
-<!-- 
-
- For some reason, Eclipse ANT support does not work out-of-the-box.
- To avoid the error "Unable to find a javac compiler",
- use the following argument: 
-
-   -Dbuild.compiler=org.eclipse.jdt.core.JDTCompilerAdapter 
-   
-Alternatively, set the property "eclipse.running" to "true" (this 
-can be set as a global property within eclipse)
-
--->
-
-
-<project name="JSI build" default="help" basedir="..">
+<project name="JSI build" default="all" basedir="..">
 
   <!-- version number -->
-  <property name="version" value="1.0b4"/>
+  <property name="version" value="1.0b5-DEV"/>
  
   <!-- library includes -->
   <property name="lib.dir" value="${basedir}/jsi/lib"/>
@@ -28,7 +14,7 @@ can be set as a global property within eclipse)
     <fileset dir="${lib.dir}">
       <include name="log4j-1.2.6.jar"/>
       <include name="junit-3.7.0.jar"/>
-      <include name="trove-1.1b4.am2.jar"/>
+      <include name="trove-2.0.2.jar"/>
       <include name="sil-0.44.2b.jar"/>
     </fileset>
   </path>
@@ -73,13 +59,8 @@ can be set as a global property within eclipse)
     <mkdir dir="${basedir}/jsi-release"/>
   </target>
 
-  <target name="configure.eclipse" if="eclipse.running">
-    <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
-    <echo message="Configuring compiler for Eclipse..."/>
-  </target> 
-  
-  <target name="compile" depends="prepare,configure.eclipse" description="Generate classes.">
-    <javac srcdir="${basedir}/jsi/src" destdir="${basedir}/jsi/bin">
+  <target name="compile" depends="prepare" description="Generate classes.">
+  	<javac srcdir="${basedir}/jsi/src" destdir="${basedir}/jsi/bin" compiler="javac1.5" target="1.2" source="1.2" debug="true" debuglevel="lines,var,source">
       <classpath refid="classpath"/>
     </javac>
     <copy todir="${basedir}/jsi/bin" file="${basedir}/jsi/src/log4j.properties"/>

@@ -30,13 +30,13 @@ public class ManualTest extends TestCase {
     p.setProperty("MaxNodeEntries", "10");
     SpatialIndex si = SpatialIndexFactory.newInstance("rtree.RTree", p);
     
-    si.add(new Rectangle(0, 0, 10, 10), 0);
-    si.add(new Rectangle(0, 0, 10, 10), 0);
-    si.add(new Rectangle(0, 0, 10, 10), 0);
-    si.add(new Rectangle(0, 0, 10, 10), 0);
-    si.add(new Rectangle(0, 0, 10, 10), 0);
+    si.add(new Rectangle(0L, 0L, 10L, 10L), 0);
+    si.add(new Rectangle(0L, 0L, 10L, 10L), 0);
+    si.add(new Rectangle(0L, 0L, 10L, 10L), 0);
+    si.add(new Rectangle(0L, 0L, 10L, 10L), 0);
+    si.add(new Rectangle(0L, 0L, 10L, 10L), 0);
     
-    si.nearestN(new Point(5, 5), new PrintProc(), 2, 100);
+    si.nearestN(new Point(5L, 5L), new PrintProc(), 2, 100L);
   }
 
 }

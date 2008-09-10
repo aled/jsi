@@ -1,6 +1,7 @@
 //   RTree.java
 //   Java Spatial Index Library
-//   Copyright (C) 2002-2005 Infomatiq Limited.
+//   Copyright (C) 2002 Infomatiq Limited
+//   Copyright (C) 2008 Aled Morris <aled@sourceforge.net>
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -19,7 +20,6 @@
 package com.infomatiq.jsi.rtree;
 
 import gnu.trove.TIntArrayList;
-import gnu.trove.TIntFloatPriorityQueue;
 import gnu.trove.TIntObjectHashMap;
 import gnu.trove.TIntProcedure;
 import gnu.trove.TIntStack;
@@ -30,6 +30,7 @@ import org.apache.log4j.Logger;
 
 import com.infomatiq.jsi.Point;
 import com.infomatiq.jsi.Rectangle;
+import com.infomatiq.jsi.PriorityQueue;
 import com.infomatiq.jsi.SpatialIndex;
 
 /**
@@ -51,14 +52,14 @@ import com.infomatiq.jsi.SpatialIndex;
  * This dependency must be removed for a standalone release. Hopefully DistanceQueue 
  * (or something equivalent) will make it into Trove4J soon.</p>
  * 
- * @author aled.morris@infomatiq.co.uk
- * @version 1.0b4
+ * @author aled@sourceforge.net
+ * @version 1.0b5-DEV
  */
 public class RTree implements SpatialIndex {
   private static final Logger log = Logger.getLogger(RTree.class.getName());
   private static final Logger deleteLog = Logger.getLogger(RTree.class.getName() + "-delete");
   
-  private static final String version = "1.0b4";
+  private static final String version = "1.0b5-DEV";
   
   // parameters of the tree
   private final static int DEFAULT_MAX_NODE_ENTRIES = 10;
@@ -108,8 +109,8 @@ public class RTree implements SpatialIndex {
   private SortedList nearestNIds = new SortedList();
   
   // List of nearestN rectanges, used in the alternative nearestN implementation.
-  private TIntFloatPriorityQueue distanceQueue = 
-    new TIntFloatPriorityQueue(TIntFloatPriorityQueue.SORT_ORDER_ASCENDING);
+  private PriorityQueue distanceQueue = 
+    new PriorityQueue(PriorityQueue.SORT_ORDER_ASCENDING);
   
   /**
    * Constructor. Use init() method to initialize parameters of the RTree.
@@ -284,7 +285,18 @@ public class RTree implements SpatialIndex {
       condenseTree(n);
       size--;
   	}
-    
+  	
+    // shrink the tree if possible (i.e. if root node has exactly one entry,and that 
+    // entry is not a leaf node, delete the root (it's entry becomes the new root)
+    Node root = getNode(rootNodeId);
+    while (root.entryCount == 1 && treeHeight > 1)
+    {
+        root.entryCount = 0;
+        rootNodeId = root.ids[0];
+        treeHeight--;
+        root = getNode(rootNodeId);
+    }
+
     if (INTERNAL_CONSISTENCY_CHECKING) {
       checkConsistency(rootNodeId, treeHeight, null);
     }
@@ -307,14 +319,12 @@ public class RTree implements SpatialIndex {
    
   private void createNearestNDistanceQueue(Point p, int count, float furthestDistance) {
     distanceQueue.reset();
-    distanceQueue.setSortOrder(TIntFloatPriorityQueue.SORT_ORDER_DESCENDING);
+    distanceQueue.setSortOrder(PriorityQueue.SORT_ORDER_DESCENDING);
     
     //  return immediately if given an invalid "count" parameter
     if (count <= 0) {
       return;
     }    
-    
-    Node rootNode = getNode(rootNodeId);  
     
     parents.reset();
     parents.push(rootNodeId);
@@ -438,7 +448,7 @@ public class RTree implements SpatialIndex {
   public void nearestN(Point p, TIntProcedure v, int count, float furthestDistance) {
     createNearestNDistanceQueue(p, count, furthestDistance);
     
-    distanceQueue.setSortOrder(TIntFloatPriorityQueue.SORT_ORDER_ASCENDING);
+    distanceQueue.setSortOrder(PriorityQueue.SORT_ORDER_ASCENDING);
     
     while (distanceQueue.size() > 0) {
       v.execute(distanceQueue.getValue());
@@ -458,8 +468,6 @@ public class RTree implements SpatialIndex {
     if (count <= 0) {
       return;
     }
-    
-    Node rootNode = getNode(rootNodeId);  
     
     parents.reset();
     parents.push(rootNodeId);
@@ -636,8 +644,8 @@ public class RTree implements SpatialIndex {
   /**
    * Get a node object, given the ID of the node.
    */
-  public Node getNode(int index) {
-    return (Node) nodeMap.get(index);
+  public Node getNode(int id) {
+    return (Node) nodeMap.get(id);
   }
 
   /**

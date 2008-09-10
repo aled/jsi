@@ -26,8 +26,8 @@ import java.util.Properties;
  * Defines methods that must be implemented by all 
  * spatial indexes. This includes the RTree and its variants.
  * 
- * @author  aled.morris@infomatiq.co.uk
- * @version 1.0b4
+ * @author  aled@sourceforge.net
+ * @version 1.0b5-DEV
  */
 public interface SpatialIndex {
   
@@ -98,7 +98,7 @@ public interface SpatialIndex {
    * @param p The point for which this method finds the
    * nearest neighbours.
    * 
-   * @param v The IntFloatProcedure whose execute() method is is called
+   * @param v The IntfloatProcedure whose execute() method is is called
    * for each nearest neighbour.
    * 
    * @param n The desired number of rectangles to find (but note that 
