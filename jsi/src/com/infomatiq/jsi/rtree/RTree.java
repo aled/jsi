@@ -1,6 +1,7 @@
 //   RTree.java
 //   Java Spatial Index Library
 //   Copyright (C) 2002 Infomatiq Limited
+//   Copyright (C) 2008 Aled Morris <aled@sourceforge.net>
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -46,14 +47,14 @@ import com.infomatiq.jsi.SpatialIndex;
  * avoidance of the creation of unnecessary objects, mainly achieved by using
  * primitive collections from the trove4j library.</p>
  * 
- * @author aled.morris@infomatiq.co.uk
- * @version 1.0b2
+ * @author aled@sourceforge.net
+ * @version 1.0b2p1
  */
 public class RTree implements SpatialIndex {
   private static final Logger log = Logger.getLogger(RTree.class.getName());
   private static final Logger deleteLog = Logger.getLogger(RTree.class.getName() + "-delete");
   
-  private static final String version = "1.0b2";
+  private static final String version = "1.0b2p1";
   
   // parameters of the tree
   private final static int DEFAULT_MAX_NODE_ENTRIES = 10;
@@ -289,6 +290,17 @@ public class RTree implements SpatialIndex {
       condenseTree(n);
       size--;
   	}
+  	
+    // shrink the tree if possible (i.e. if root node has exactly one entry,and that 
+    // entry is not a leaf node, delete the root (it's entry becomes the new root)
+    Node root = getNode(rootNodeId);
+    while (root.entryCount == 1 && treeHeight > 1)
+    {
+        root.entryCount = 0;
+        rootNodeId = root.ids[0];
+        treeHeight--;
+        root = getNode(rootNodeId);
+    }
     
     return (foundIndex != -1);
   }
