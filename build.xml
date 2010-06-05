@@ -2,7 +2,7 @@
 
 <!-- ANT script to build JSI -->
 
-<project name="JSI build" default="all" basedir="..">
+<project name="JSI build" default="all" basedir=".">
 
   <!-- version number -->
   <property name="version" value="1.0b5-DEV"/>
@@ -15,12 +15,22 @@
       <include name="log4j-1.2.6.jar"/>
       <include name="junit-3.7.0.jar"/>
       <include name="trove-2.0.2.jar"/>
-      <include name="sil-0.44.2b.jar"/>
+      <include name="sil-0.44.2b.jar"/>   
     </fileset>
   </path>
 
+  <path id="test-classpath">
+    <fileset dir="${lib.dir}">
+      <include name="log4j-1.2.6.jar"/>
+      <include name="junit-3.7.0.jar"/>
+      <include name="trove-2.0.2.jar"/>
+      <include name="sil-0.44.2b.jar"/>
+    </fileset>
+    <pathelement location="${basedir}/jsi/bin"/>
+    <pathelement location="${basedir}/jsi/tests"/>
+  </path>
+
   <!-- targets -->
-  
   <target name="help">
     <echo message="JSI build.xml:  Help on buildfile usage and targets."/>
     <echo message=""/>
@@ -28,20 +38,23 @@
     <echo message=""/>
     <echo message="Targets:"/>
     <echo message=""/>
-	<echo message="  o  help      Display this message."/>
-	<echo message="  o  clean     Remove all generated files, create build folders and other preparation."/>
-	<echo message="  o  compile   Generate classes"/>
-<!--    <echo message="  o  quicktest Run quick tests (all manual tests, plus reference comparisons up to 100 entries)"/>   -->
-<!--    <echo message="  o  test      Run reference comparisons up to 10,000 entries"/>                                     -->
-<!--    <echo message="  o  fulltest  Run reference comparisons up to 10,000,000 entries (may take several days to run!)"/> -->
-	<echo message="  o  javadoc   Generate javadoc documentation"/>
-	<echo message="  o  jar       Create jsi.jar from compiled classes and resources."/>
-	<echo message="  o  zip       Create zip file containing the release."/>
-	<echo message="  o  all       Above targets (without help) in order."/>
+    <echo message="  o  help             Display this message."/>
+    <echo message="  o  clean            Remove all classes and generated test results"/>
+  	<echo message="  o  clean-all        As for clean, but also remove javadoc, jars, zips and reference test results"/>
+  	<echo message="  o  prepare          Create build folders and other preparation"/>
+  	<echo message="  o  compile          Generate classes"/>
+  	<echo message="  o  test             Run unit tests (all manual tests, plus reference comparisons up to 1000 entries)"/>
+  	<echo message="  o  comparison-test  Run unit tests plus reference comparisons up to 10,000 entries"/>
+    <echo message="  o  overnight-comparison-test  Run unit tests plus reference comparisons up to 100,000 entries"/>
+    <echo message="  o  javadoc          Generate javadoc documentation"/>
+    <echo message="  o  jar              Create jsi.jar from compiled classes and resources"/>
+    <echo message="  o  zip              Create zip file containing the release (as uploaded to sourceforge)"/>
+    <echo message="  o  all              Run the following: clean,compile,test,javadoc,jar,zip"/>
     <echo message=""/>
     <echo message="Key properties:"/>
     <echo message=""/>
-	<echo message="  o  basedir   Location of JSI project root."/>
+    <echo message="  o  basedir   Location of JSI project root."/>
+    <echo message=""/>
   </target>
 
   <target name="clean" description="Remove all generated files.">
@@ -49,12 +62,21 @@
     <delete dir="${basedir}/jsi/jar"/>
     <delete dir="${basedir}/jsi-website/javadoc/${version}"/>
     <delete file="${basedir}/jsi-release/${version}.zip"/>
+    <delete dir="${basedir}/jsi-junit-reports"/>
   </target>
 
+  <target name="clean-all" depends="clean" description="Remove all generated test results.">
+    <delete>
+      <fileset dir="${basedir}/jsi/test-results" excludes="*reference"/>
+    </delete>
+  </target>
+	
   <target name="prepare" description="Create dirs.">
     <mkdir dir="${basedir}/jsi/bin"/>
     <mkdir dir="${basedir}/jsi/jar"/>
+    <mkdir dir="${basedir}/jsi/test-results"/>
     <mkdir dir="${basedir}/jsi/doc/javadoc"/>
+    <mkdir dir="${basedir}/jsi-junit-reports"/> 
     <mkdir dir="${basedir}/jsi-website/javadoc/${version}"/>
     <mkdir dir="${basedir}/jsi-release"/>
   </target>
@@ -66,6 +88,42 @@
     <copy todir="${basedir}/jsi/bin" file="${basedir}/jsi/src/log4j.properties"/>
   </target>
 
+  <target name="test" depends="compile" description="Unit tests.">
+    <junit fork="yes" showoutput="yes" printsummary="yes" dir="${basedir}/jsi">
+      <jvmarg value="-Duser.dir=${basedir}/jsi"/>
+      <classpath refid="test-classpath"/>
+      <batchtest fork="yes" todir="${basedir}/jsi-junit-reports">
+        <formatter type="xml"/>
+        <fileset dir="${basedir}/jsi/src" includes="**/ReferenceGenerateTest.java"/>
+        <fileset dir="${basedir}/jsi/src" includes="**/ReferenceCompareTest.java"/>
+      </batchtest>
+    </junit>
+  </target>
+
+	<target name="comparison-test" depends="compile" description="Comparison tests.">
+    <junit fork="yes" showoutput="yes" printsummary="yes" dir="${basedir}/jsi">
+      <jvmarg value="-Duser.dir=${basedir}/jsi"/>
+      <classpath refid="test-classpath"/>
+      <batchtest fork="yes" todir="${basedir}/jsi-junit-reports">
+        <formatter type="xml"/>
+        <fileset dir="${basedir}/jsi/src" includes="**/ReferenceGenerateTest_10000.java"/>
+        <fileset dir="${basedir}/jsi/src" includes="**/ReferenceCompareTest_10000.java"/>
+      </batchtest>
+    </junit>
+  </target>
+	
+	<target name="overnight-comparison-test" depends="compile" description="Comparison tests.">
+    <junit fork="yes" showoutput="yes" printsummary="yes" dir="${basedir}/jsi">
+      <jvmarg value="-Duser.dir=${basedir}/jsi"/>
+      <classpath refid="test-classpath"/>
+      <batchtest fork="yes" todir="${basedir}/jsi-junit-reports">
+        <formatter type="xml"/>
+        <fileset dir="${basedir}/jsi/src" includes="**/ReferenceGenerateTest_100000.java"/>
+        <fileset dir="${basedir}/jsi/src" includes="**/ReferenceCompareTest_100000.java"/>
+      </batchtest>
+    </junit>
+  </target>
+	
   <target name="jar" depends="compile" description="Create jsi.jar from compiled classes and resources.">
     <!-- main jar -->
     <jar jarfile="${basedir}/jsi/jar/jsi-${version}.jar" basedir="${basedir}/jsi/bin">
@@ -106,7 +164,7 @@
     </zip>
   </target>
   
-  <target name="all" depends="clean,prepare,compile,jar,javadoc,zip">
+  <target name="all" depends="clean,prepare,compile,test,jar,javadoc,zip">
   </target>
 
 </project>

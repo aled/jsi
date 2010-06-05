@@ -1,11 +1,9 @@
-To build the JSI library from source, simply compile the files in jsi-1.0b5-DEV/jsi/src
-using your compiler of choice. Ensure the compiled versions end up in 
-jsi-1.0b5-DEV/jsi/bin.
+To build the JSI library from source, install Ant and run the following:
 
-ANT is used to generate the releases, using jsi-1.0b5-DEV/jsi/build.xml. If you have ANT
-installed, you can generate the release zip file. Run it from the jsi directory;
-the basedir parameter must be set to the parent of the jsi directory; e.g.
-
-  ant -Dbasedir=/home/amorris/jsi-1.0b5-DEV all
+% cd <location-of-build.xml>
+% ant all
   
-This will generate /home/amorris/jsi-1.0b5-DEV/jsi-release/jsi-1.0b5-DEV.zip
+This will generate two jar files; jsi/jar/jsi-1.0b5-DEV.jar and jsi/jar/jsi-test-1.0b5-DEV.jar. The second is only required for running tests, and is not needed for production use.
+
+
+
