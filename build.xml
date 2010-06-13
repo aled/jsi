@@ -63,6 +63,7 @@
     <delete dir="${basedir}/jsi-website/javadoc/${version}"/>
     <delete file="${basedir}/jsi-release/${version}.zip"/>
     <delete dir="${basedir}/jsi-junit-reports"/>
+    <delete dir="${basedir}/zip-rebuild"/>
   </target>
 
   <target name="clean-all" depends="clean" description="Remove all generated test results.">
@@ -151,7 +152,7 @@
     </copy>
   </target>
 
-  <target name="zip" depends="compile,jar,javadoc" description="Create zip file containing the JSI release">
+  <target name="zip" depends="compile,test,jar,javadoc" description="Create zip file containing the JSI release">
     <zip zipfile="${basedir}/jsi-release/jsi-${version}.zip">
       <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="jsi/src/"/>
       <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="jsi/bin/"/>
@@ -159,12 +160,17 @@
       <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="jsi/doc/"/>
       <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="jsi/tests/"/>
       <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="jsi/lib/"/>
-      <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="jsi/build.xml"/>
+      <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="build.xml"/>
       <zipfileset prefix="jsi-${version}" dir="${basedir}" includes="jsi/test-results/test-allfunctions-100-reference"/>
     </zip>
   </target>
   
-  <target name="all" depends="clean,prepare,compile,test,jar,javadoc,zip">
+  <target name="zip-rebuild" depends="zip">
+    <unzip src="${basedir}/jsi-release/jsi-${version}.zip" dest="${basedir}/zip-rebuild"/>
+    <ant antfile="${basedir}/zip-rebuild/jsi-${version}/build.xml" dir="${basedir}/zip-rebuild/jsi-${version}" target="zip"/>
+  </target>
+  
+  <target name="all" depends="clean,prepare,compile,test,jar,javadoc,zip,zip-rebuild">
   </target>
 
 </project>
