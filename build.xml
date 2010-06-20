@@ -97,6 +97,7 @@
         <formatter type="xml"/>
         <fileset dir="${basedir}/jsi/src" includes="**/ReferenceGenerateTest.java"/>
         <fileset dir="${basedir}/jsi/src" includes="**/ReferenceCompareTest.java"/>
+        <fileset dir="${basedir}/jsi/src" includes="**/DeleteAllEntriesTest.java"/>
       </batchtest>
     </junit>
   </target>

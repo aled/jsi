@@ -187,7 +187,7 @@ public class RTree implements SpatialIndex {
     size++;
     
     if (INTERNAL_CONSISTENCY_CHECKING) {
-      checkConsistency(rootNodeId, treeHeight, null);
+      checkConsistency();
     }
   }
   
@@ -291,14 +291,25 @@ public class RTree implements SpatialIndex {
     Node root = getNode(rootNodeId);
     while (root.entryCount == 1 && treeHeight > 1)
     {
+        deletedNodeIds.push(rootNodeId);
         root.entryCount = 0;
         rootNodeId = root.ids[0];
         treeHeight--;
         root = getNode(rootNodeId);
     }
+    
+    // if the tree is now empty, then set the MBR of the root node back to it's original state
+    // (this is only needed when the tree is empty, as this is the only state where an empty node
+    // is not eliminated)
+    if (size == 0) {
+      root.mbrMinX = Float.MAX_VALUE;
+      root.mbrMaxX = Float.MIN_VALUE;
+      root.mbrMinY = Float.MAX_VALUE;
+      root.mbrMaxY = Float.MIN_VALUE;
+    }
 
     if (INTERNAL_CONSISTENCY_CHECKING) {
-      checkConsistency(rootNodeId, treeHeight, null);
+      checkConsistency();
     }
         
     return (foundIndex != -1);
@@ -612,7 +623,11 @@ public class RTree implements SpatialIndex {
     
     Node n = getNode(getRootNodeId());
     if (n != null && n.entryCount > 0) {
-      bounds = new Rectangle(n.mbrMinX, n.mbrMinY, n.mbrMaxX, n.mbrMaxY);
+      bounds = new Rectangle();
+      bounds.minX = n.mbrMinX;
+      bounds.minY = n.mbrMinY;
+      bounds.maxX = n.mbrMaxX;
+      bounds.maxY = n.mbrMaxY;
     }
     return bounds;
   }
@@ -1211,44 +1226,71 @@ public class RTree implements SpatialIndex {
   
   /**
    * Check the consistency of the tree.
+   * Return false if an inconsistency is detected, true otherwise.
    */
-  private void checkConsistency(int nodeId, int expectedLevel, Rectangle expectedMBR) {
+  public boolean checkConsistency() {
+    return checkConsistency(rootNodeId, treeHeight, null);
+  }
+  
+  private boolean checkConsistency(int nodeId, int expectedLevel, Rectangle expectedMBR) {
     // go through the tree, and check that the internal data structures of 
-    // the tree are not corrupted.    
+    // the tree are not corrupted.        
     Node n = getNode(nodeId);
     
     if (n == null) {
       log.error("Error: Could not read node " + nodeId);
+      return false;
+    }
+    
+    // if tree is empty, then there should be exactly one node, at level 1
+    // TODO: also check the MBR is as for a new node
+    if (nodeId == rootNodeId && size() == 0) {
+      if (n.level != 1) {
+        log.error("Error: tree is empty but root node is not at level 1");
+        return false;
+      }
     }
     
     if (n.level != expectedLevel) {
       log.error("Error: Node " + nodeId + ", expected level " + expectedLevel + ", actual level " + n.level);
+      return false;
     }
     
     Rectangle calculatedMBR = calculateMBR(n);
-    Rectangle actualMBR = new Rectangle(n.mbrMinX, n.mbrMinY, n.mbrMaxX, n.mbrMaxY);
+    Rectangle actualMBR = new Rectangle();
+    actualMBR.minX = n.mbrMinX;
+    actualMBR.minY = n.mbrMinY;
+    actualMBR.maxX = n.mbrMaxX;
+    actualMBR.maxY = n.mbrMaxY;
     if (!actualMBR.equals(calculatedMBR)) {
       log.error("Error: Node " + nodeId + ", calculated MBR does not equal stored MBR");
+      return false;
     }
     
     if (expectedMBR != null && !actualMBR.equals(expectedMBR)) {
       log.error("Error: Node " + nodeId + ", expected MBR (from parent) does not equal stored MBR");
+      return false;
     }
     
     // Check for corruption where a parent entry is the same object as the child MBR
     if (expectedMBR != null && actualMBR.sameObject(expectedMBR)) {
       log.error("Error: Node " + nodeId + " MBR using same rectangle object as parent's entry");
+      return false;
     }
     
     for (int i = 0; i < n.entryCount; i++) {
       if (n.ids[i] == -1) {
         log.error("Error: Node " + nodeId + ", Entry " + i + " is null");
+        return false;
       }     
       
       if (n.level > 1) { // if not a leaf
-        checkConsistency(n.ids[i], n.level - 1, new Rectangle(n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i])); 
+        if (!checkConsistency(n.ids[i], n.level - 1, new Rectangle(n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i]))) {
+          return false;
+        }
       }   
-    } 
+    }
+    return true;
   }
   
   /**
@@ -1256,9 +1298,9 @@ public class RTree implements SpatialIndex {
    * Used in consistency checking
    */
   private Rectangle calculateMBR(Node n) {
-    Rectangle mbr = new Rectangle(n.entriesMinX[0], n.entriesMinY[0], n.entriesMaxX[0], n.entriesMaxY[0]);
-    
-    for (int i = 1; i < n.entryCount; i++) {
+    Rectangle mbr = new Rectangle();
+   
+    for (int i = 0; i < n.entryCount; i++) {
       if (n.entriesMinX[i] < mbr.minX) mbr.minX = n.entriesMinX[i];
       if (n.entriesMinY[i] < mbr.minY) mbr.minY = n.entriesMinY[i];
       if (n.entriesMaxX[i] > mbr.maxX) mbr.maxX = n.entriesMaxX[i];
