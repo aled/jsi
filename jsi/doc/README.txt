@@ -11,4 +11,4 @@ jsi-1.0b5-DEV/jsi/tests        - test scripts
 jsi-1.0b5-DEV/jsi/test-results - test results will be placed here
 jsi-1.0b5-DEV/jsi/doc          - documentation
 jsi-1.0b5-DEV/jsi/doc/javadoc  - javadoc documentation
-jsi-1.0b5-DEV/jsi/build.xml    - ANT build script. See BUILD.txt.
+jsi-1.0b5-DEV/build.xml        - ANT build script. See BUILD.txt.
