@@ -1,6 +1,6 @@
-//   PriorityQueue.java
-//   Java Spatial Index Library
-//   Copyright (C) 2008 aled@sourceforge.net
+//  PriorityQueue.java
+//  Java Spatial Index Library
+//  Copyright (C) 2008 aled@sourceforge.net
 //
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -22,12 +22,15 @@ import gnu.trove.TIntArrayList;
 import gnu.trove.TFloatArrayList;
 
 /**
+ * <p>
  * Priority Queue that stores values as ints and priorities as floats. Uses a
  * Heap to sort the priorities; the values are sorted "in step" with the
  * priorities.
- * 
+ * </p>
+ * <p>
  * A Heap is simply an array that is kept semi sorted; in particular if the
  * elements of the array are arranged in a tree structure; ie
+ * </p>
  * 
  *                                   00 
  *                                 /     \ 
@@ -37,28 +40,33 @@ import gnu.trove.TFloatArrayList;
  *                          /\    /\    /\    /\ 
  *                        07 08 09 10 11 12 13 14
  * 
+ * <p>
  * then each parent is kept sorted with respect to it's immediate children. E.g.
  * 00 < 01, 00 < 02, 02 < 05, 02 < 06
- * 
+ * </p>
+ * <p>
  * This means that the array appears to be sorted, as long as we only ever look
  * at element 0.
- * 
+ * </p>
+ * <p>
  * Inserting new elements is much faster than if the entire array was kept
  * sorted; a new element is appended to the array, and then recursively swapped
  * with each parent to maintain the "parent is sorted w.r.t it's children"
  * property.
- * 
+ * </p>
+ * <p>
  * To return the "next" value it is necessary to remove the root element. The
  * last element in the array is placed in the root of the tree, and is
  * recursively swapped with one of it's children until the "parent is sorted
  * w.r.t it's children" property is restored.
- * 
+ * </p>
+ * <p>
  * Random access is slow (eg for deleting a particular value), and is not
  * implemented here - if this functionality is required, then a heap probably
  * isn't the right data structure.
- * 
+ * </p>
  * @author Aled Morris <aled@sourceforge.net>
- * @version 1.0b5-DEV
+ * @version 1.0b5
  */
 public class PriorityQueue {
   public static final boolean SORT_ORDER_ASCENDING = true;

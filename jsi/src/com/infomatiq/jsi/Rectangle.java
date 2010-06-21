@@ -24,7 +24,7 @@ package com.infomatiq.jsi;
  * Currently hardcoded to 2 dimensions, but could be extended.
  * 
  * @author  aled@sourceforge.net
- * @version 1.0b5-DEV
+ * @version 1.0b5
  */
 public class Rectangle {
   

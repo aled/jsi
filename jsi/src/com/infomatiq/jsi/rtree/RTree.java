@@ -48,18 +48,14 @@ import com.infomatiq.jsi.SpatialIndex;
  * avoidance of the creation of unnecessary objects, mainly achieved by using
  * primitive collections from the trove4j library.</p>
  * 
- * <p>WARNING: this class currently depends on com.infomatiq.util.DistanceQueue.
- * This dependency must be removed for a standalone release. Hopefully DistanceQueue 
- * (or something equivalent) will make it into Trove4J soon.</p>
- * 
  * @author aled@sourceforge.net
- * @version 1.0b5-DEV
+ * @version 1.0b5
  */
 public class RTree implements SpatialIndex {
   private static final Logger log = Logger.getLogger(RTree.class.getName());
   private static final Logger deleteLog = Logger.getLogger(RTree.class.getName() + "-delete");
   
-  private static final String version = "1.0b5-DEV";
+  private static final String version = "1.0b5";
   
   // parameters of the tree
   private final static int DEFAULT_MAX_NODE_ENTRIES = 10;
@@ -421,19 +417,20 @@ public class RTree implements SpatialIndex {
   }
   
   /**
-   * New implementation of nearestN. Designed to give good performance
-   * where
-   *   o N is high (100+)
-   *   o The results do not need to be sorted by distance.
-   * 
-   * Uses a priority queue as the underlying data structure. 
-   * 
-   * The behaviour of this algorithm has been carefully designed to
-   * return exactly the same items as the original, in particular,
-   * more than N items will be returned if items N and N+x have the
-   * same priority.
+   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(Point, TIntProcedure, int, float)
    */
   public void nearestNUnsorted(Point p, TIntProcedure v, int count, float furthestDistance) {
+    // This implementation is designed to give good performance
+    // where
+    //   o N is high (100+)
+    //   o The results do not need to be sorted by distance.
+    //     
+    // Uses a priority queue as the underlying data structure. 
+    //   
+    // The behaviour of this algorithm has been carefully designed to
+    // return exactly the same items as the the original version (nearestN_orig), in particular,
+    // more than N items will be returned if items N and N+x have the
+    // same priority. 
     createNearestNDistanceQueue(p, count, furthestDistance);
    
     while (distanceQueue.size() > 0) {
@@ -443,18 +440,7 @@ public class RTree implements SpatialIndex {
   }
   
   /**
-   * Second alternative implementation of NearestN.
-   * 
-   * Uses the first alternative implementation, then sorts the results by
-   * ascending distance.
-   * 
-   * Would ideally like to invert the sort order in-place, but for now just
-   * create another distanceQueue, and insert all the entries again (but 
-   * negate the distance)
-   * 
-   * If it is comparable, this would allow us to replace the original nearestN
-   * implementation. Absolute speed is not an overriding requirement, as 
-   * sorting is currently only performed for small values of n.
+   * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, TIntProcedure, int, float)
    */
   public void nearestN(Point p, TIntProcedure v, int count, float furthestDistance) {
     createNearestNDistanceQueue(p, count, furthestDistance);
@@ -472,7 +458,6 @@ public class RTree implements SpatialIndex {
    * @deprecated Use new NearestN or NearestNUnsorted instead.
    * 
    * This implementation of nearestN is only suitable for small values of N (ie less than 10).
-   *  
    */ 
   public void nearestN_orig(Point p, TIntProcedure v, int count, float furthestDistance) {
     // return immediately if given an invalid "count" parameter
@@ -1224,9 +1209,11 @@ public class RTree implements SpatialIndex {
     return nn;
   }
   
+  
   /**
    * Check the consistency of the tree.
-   * Return false if an inconsistency is detected, true otherwise.
+   * 
+   * @return false if an inconsistency is detected, true otherwise.
    */
   public boolean checkConsistency() {
     return checkConsistency(rootNodeId, treeHeight, null);

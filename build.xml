@@ -5,7 +5,7 @@
 <project name="JSI build" default="all" basedir=".">
 
   <!-- version number -->
-  <property name="version" value="1.0b5-DEV"/>
+  <property name="version" value="1.0b5"/>
  
   <!-- library includes -->
   <property name="lib.dir" value="${basedir}/jsi/lib"/>

@@ -27,7 +27,7 @@ import java.util.Properties;
  * spatial indexes. This includes the RTree and its variants.
  * 
  * @author  aled@sourceforge.net
- * @version 1.0b5-DEV
+ * @version 1.0b5
  */
 public interface SpatialIndex {
   
@@ -117,7 +117,7 @@ public interface SpatialIndex {
   
   /**
    * Same as nearestN, except the found rectangles are not returned
-   * in sorted order. This may be faster, depending on the implementation.
+   * in sorted order. This will be faster, if sorting is not required
    */
   public void nearestNUnsorted(Point p, TIntProcedure v, int n, float distance);
   

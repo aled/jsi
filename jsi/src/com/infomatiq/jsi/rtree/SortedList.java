@@ -23,8 +23,7 @@ import gnu.trove.TIntArrayList;
 import gnu.trove.TIntProcedure;
 
 /**
- * @author aled@sourceforge.net
- * 
+ * <p>
  * Sorted List, backed by a TArrayList.
  * 
  * The elements in the list are always ordered by priority.
@@ -40,6 +39,10 @@ import gnu.trove.TIntProcedure;
  * 
  * This class is not optimised for large values of preferredMaximumSize. Values greater than,
  * say, 5, are not recommended.
+ * </p>
+ * 
+ * @author aled@sourceforge.net
+ * @version 1.0b5
  */
 public class SortedList {
   private static final int DEFAULT_PREFERRED_MAXIMUM_SIZE = 10;

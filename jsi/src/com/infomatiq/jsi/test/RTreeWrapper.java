@@ -35,10 +35,10 @@ import com.infomatiq.jsi.rtree.RTree;
  * can be made.
  * 
  * @author aled@sourceforge.net
- * @version $Revision$
+ * @version 1.0b5
  */
 public class RTreeWrapper implements SpatialIndex {
-  private static final String version = "1.0b5-DEV";
+  private static final String version = "1.0b5";
   
   private RTree tree;
   
