@@ -28,7 +28,7 @@ import com.infomatiq.jsi.SpatialIndex;
  * Factory class used to create instances of spatial indexes
  * 
  * @author  aled@sourceforge.net
- * @version 1.0b5
+ * @version 1.0b6-DEV
  */
 public class SpatialIndexFactory {
   

@@ -29,7 +29,7 @@ import org.apache.log4j.Logger;
  * Index library against alternative implementations.
  * 
  * @author  aled@sourceforge.net
- * @version 1.0b5
+ * @version 1.0b6-DEV
  */
 public class ReferenceCompareTest extends SpatialIndexTest {
 

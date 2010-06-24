@@ -43,11 +43,11 @@ import com.infomatiq.jsi.SpatialIndex;
  * <p>On the other hand, the add() and delete() methods are very fast :-)</p>
  * 
  * @author  aled@sourceforge.net
- * @version 1.0b5
+ * @version 1.0b6-DEV
  */
 public class SimpleIndex implements SpatialIndex {
   TIntObjectHashMap m_map = new TIntObjectHashMap();
-  private static final String version = "1.0b5";
+  private static final String version = "1.0b6-DEV";
   
   /**
    * Does nothing. There are no implementation dependent properties for 
