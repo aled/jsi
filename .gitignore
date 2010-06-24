@@ -1,1 +1,7 @@
 *.class
+.metadata
+jsi/jar
+jsi/test-results
+jsi-junit-reports
+jsi-release
+jsi-website
