@@ -765,9 +765,9 @@ public class RTree implements SpatialIndex {
     // Find extreme rectangles along all dimension. Along each dimension,
     // find the entry whose rectangle has the highest low side, and the one 
     // with the lowest high side. Record the separation.
-    float maxNormalizedSeparation = 0;
-    int highestLowIndex = 0;
-    int lowestHighIndex = 0;
+    float maxNormalizedSeparation = -1; // initialize to -1 so that even overlapping rectangles will be considered for the seeds
+    int highestLowIndex = -1;
+    int lowestHighIndex = -1;
     
     // for the purposes of picking seeds, take the MBR of the node to include
     // the new rectangle aswell.
@@ -775,6 +775,9 @@ public class RTree implements SpatialIndex {
     if (newRectMinY < n.mbrMinY) n.mbrMinY = newRectMinY;
     if (newRectMaxX > n.mbrMaxX) n.mbrMaxX = newRectMaxX;
     if (newRectMaxY > n.mbrMaxY) n.mbrMaxY = newRectMaxY;
+    
+    float mbrLenX = n.mbrMaxX - n.mbrMinX;
+    float mbrLenY = n.mbrMaxY - n.mbrMinY;
     
     if (log.isDebugEnabled()) {
       log.debug("pickSeeds(): NodeId = " + n.nodeId);
@@ -802,7 +805,7 @@ public class RTree implements SpatialIndex {
       // PS2 [Adjust for shape of the rectangle cluster] Normalize the separations
       // by dividing by the widths of the entire set along the corresponding
       // dimension
-      float normalizedSeparation = (tempHighestLow - tempLowestHigh) / (n.mbrMaxX - n.mbrMinX);
+      float normalizedSeparation = mbrLenX == 0 ? 1 : (tempHighestLow - tempLowestHigh) / mbrLenX;
       if (normalizedSeparation > 1 || normalizedSeparation < -1) {
         log.error("Invalid normalized separation X");
       }
@@ -815,9 +818,9 @@ public class RTree implements SpatialIndex {
           
       // PS3 [Select the most extreme pair] Choose the pair with the greatest
       // normalized separation along any dimension.
-      // Note that only positive normalized separations are used; if negative,
-      // it means the rectangles overlapped.
-      if (normalizedSeparation > maxNormalizedSeparation) {
+      // Note that if negative it means the rectangles overlapped. However still include
+      // overlapping rectangles if that is the only choice available.
+      if (normalizedSeparation >= maxNormalizedSeparation) {
         highestLowIndex = tempHighestLowIndex;
         lowestHighIndex = tempLowestHighIndex;
         maxNormalizedSeparation = normalizedSeparation;
@@ -847,7 +850,7 @@ public class RTree implements SpatialIndex {
       // PS2 [Adjust for shape of the rectangle cluster] Normalize the separations
       // by dividing by the widths of the entire set along the corresponding
       // dimension
-      float normalizedSeparation = (tempHighestLow - tempLowestHigh) / (n.mbrMaxY - n.mbrMinY);
+      float normalizedSeparation = mbrLenY == 0 ? 1 : (tempHighestLow - tempLowestHigh) / mbrLenY;
       if (normalizedSeparation > 1 || normalizedSeparation < -1) {
         log.error("Invalid normalized separation Y");
       }
@@ -860,12 +863,34 @@ public class RTree implements SpatialIndex {
           
       // PS3 [Select the most extreme pair] Choose the pair with the greatest
       // normalized separation along any dimension.
-      // Note that only positive normalized separations are used; if negative,
-      // it means the rectangles overlapped.
-      if (normalizedSeparation > maxNormalizedSeparation) {
+      // Note that if negative it means the rectangles overlapped. However still include
+      // overlapping rectangles if that is the only choice available.
+      if (normalizedSeparation >= maxNormalizedSeparation) {
         highestLowIndex = tempHighestLowIndex;
         lowestHighIndex = tempLowestHighIndex;
         maxNormalizedSeparation = normalizedSeparation;
+      }
+    }
+    
+    // At this point it is possible that the new rectangle is both highestLow and lowestHigh.
+    // This can happen if all rectangles in the node overlap the new rectangle.
+    // Resolve this by declaring that the highestLowIndex is the lowest Y and,
+    // the lowestHighIndex is the largest X (but always a different rectangle)
+    if (highestLowIndex == lowestHighIndex) { 
+      highestLowIndex = -1;
+      float tempMinY = newRectMinY;
+      lowestHighIndex = 0;
+      float tempMaxX = n.entriesMaxX[0];
+      
+      for (int i = 1; i < n.entryCount; i++) {
+        if (n.entriesMinY[i] < tempMinY) {
+          tempMinY = n.entriesMinY[i];
+          highestLowIndex = i;
+        }
+        else if (n.entriesMaxX[i] > tempMaxX) {
+          tempMaxX = n.entriesMaxX[i];
+          lowestHighIndex = i;
+        }
       }
     }
     

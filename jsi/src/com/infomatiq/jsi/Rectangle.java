@@ -300,13 +300,22 @@ public class Rectangle {
                                   float r2MinX, float r2MinY, float r2MaxX, float r2MaxY) { 
     float r1Area = (r1MaxX - r1MinX) * (r1MaxY - r1MinY);                    
     
+    if (r1Area == Float.POSITIVE_INFINITY) {
+      return 0; // cannot enlarge an infinite rectangle...
+    }
+    
     if (r2MinX < r1MinX) r1MinX = r2MinX;   
     if (r2MinY < r1MinY) r1MinY = r2MinY;   
     if (r2MaxX > r1MaxX) r1MaxX = r2MaxX;                               
     if (r2MaxY > r1MaxY) r1MaxY = r2MaxY;
     
     float r1r2UnionArea = (r1MaxX - r1MinX) * (r1MaxY - r1MinY);
-                                  
+          
+    if (r1r2UnionArea == Float.POSITIVE_INFINITY) {
+      // if a finite rectangle is enlarged and becomes infinite,
+      // then the enlargement must be infinite.
+      return Float.POSITIVE_INFINITY;
+    }
     return r1r2UnionArea - r1Area;                              
   }
   
