@@ -47,7 +47,7 @@ import com.infomatiq.jsi.SpatialIndex;
  * SpatialIndexTest
  * 
  * @author  aled@sourceforge.net
- * @version 1.0b6-DEV
+ * @version 1.0b6
  */
 public class SpatialIndexTest extends TestCase {
   

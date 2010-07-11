@@ -49,13 +49,13 @@ import com.infomatiq.jsi.SpatialIndex;
  * primitive collections from the trove4j library.</p>
  * 
  * @author aled@sourceforge.net
- * @version 1.0b6-DEV
+ * @version 1.0b6
  */
 public class RTree implements SpatialIndex {
   private static final Logger log = Logger.getLogger(RTree.class.getName());
   private static final Logger deleteLog = Logger.getLogger(RTree.class.getName() + "-delete");
   
-  private static final String version = "1.0b6-DEV";
+  private static final String version = "1.0b6";
   
   // parameters of the tree
   private final static int DEFAULT_MAX_NODE_ENTRIES = 10;

@@ -45,14 +45,14 @@ import com.infomatiq.jsi.SpatialIndex;
  * Used to generate test results and performance comparisons.
  * 
  * @author aled@sourceforge.net
- * @version 1.0b6-DEV
+ * @version 1.0b6
  */
 public class SILWrapper implements SpatialIndex {
   
   private static final Logger log = 
     Logger.getLogger(SILWrapper.class.getName());
     
-  private static final String version = "1.0b6-DEV";
+  private static final String version = "1.0b6";
   
   private IStorageManager storageManager = null; 
   private ISpatialIndex tree = null;

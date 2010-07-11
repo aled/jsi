@@ -26,7 +26,7 @@ import com.infomatiq.jsi.Rectangle;
  * RectangleTest
  * 
  * @author  aled@sourceforge.net
- * @version 1.0b6-DEV
+ * @version 1.0b6
  */
 public class RectangleTest extends TestCase {
   public RectangleTest(String s) {

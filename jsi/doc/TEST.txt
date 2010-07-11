@@ -4,7 +4,7 @@ Note this will take a very long time to run:
 1. Make sure the java executable is in the path.
 2. Extract the zip file into a directory of your choice, eg /home/fred
 3. 'cd' into the 'jsi' directory created in the previous step; 
-   eg /home/fred/jsi-1.0b6-DEV/jsi
+   eg /home/fred/jsi-1.0b6/jsi
 4. Generate reference test results
      [Linux]
      java -classpath bin:lib/log4j-1.2.6.jar:lib/junit-3.7.0.jar:lib/trove-2.0.2.jar:lib/sil-0.44.2b.jar junit.textui.TestRunner com.infomatiq.jsi.test.ReferenceGenerateTest
