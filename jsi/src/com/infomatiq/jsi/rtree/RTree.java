@@ -140,21 +140,27 @@ public class RTree implements SpatialIndex {
    * @see com.infomatiq.jsi.SpatialIndex#init(Properties)
    */
   public void init(Properties props) {
-    maxNodeEntries = Integer.parseInt(props.getProperty("MaxNodeEntries", "0"));
-    minNodeEntries = Integer.parseInt(props.getProperty("MinNodeEntries", "0"));
-    
-    // Obviously a node with less than 2 entries cannot be split.
-    // The node splitting algorithm will work with only 2 entries
-    // per node, but will be inefficient.
-    if (maxNodeEntries < 2) { 
-      log.warn("Invalid MaxNodeEntries = " + maxNodeEntries + " Resetting to default value of " + DEFAULT_MAX_NODE_ENTRIES);
-      maxNodeEntries = DEFAULT_MAX_NODE_ENTRIES;
-    }
-    
-    // The MinNodeEntries must be less than or equal to (int) (MaxNodeEntries / 2)
-    if (minNodeEntries < 1 || minNodeEntries > maxNodeEntries / 2) {
-      log.warn("MinNodeEntries must be between 1 and MaxNodeEntries / 2");
-      minNodeEntries = maxNodeEntries / 2;
+    if (props == null) {
+      // use sensible defaults if null is passed in.
+      maxNodeEntries = 50;
+      minNodeEntries = 20;
+    } else {
+      maxNodeEntries = Integer.parseInt(props.getProperty("MaxNodeEntries", "0"));
+      minNodeEntries = Integer.parseInt(props.getProperty("MinNodeEntries", "0"));
+      
+      // Obviously a node with less than 2 entries cannot be split.
+      // The node splitting algorithm will work with only 2 entries
+      // per node, but will be inefficient.
+      if (maxNodeEntries < 2) { 
+        log.warn("Invalid MaxNodeEntries = " + maxNodeEntries + " Resetting to default value of " + DEFAULT_MAX_NODE_ENTRIES);
+        maxNodeEntries = DEFAULT_MAX_NODE_ENTRIES;
+      }
+      
+      // The MinNodeEntries must be less than or equal to (int) (MaxNodeEntries / 2)
+      if (minNodeEntries < 1 || minNodeEntries > maxNodeEntries / 2) {
+        log.warn("MinNodeEntries must be between 1 and MaxNodeEntries / 2");
+        minNodeEntries = maxNodeEntries / 2;
+      }
     }
     
     entryStatus = new byte[maxNodeEntries];  
