@@ -29,8 +29,8 @@ public class Node {
   int nodeId = 0;
   float mbrMinX = Float.MAX_VALUE;
   float mbrMinY = Float.MAX_VALUE;
-  float mbrMaxX = Float.MIN_VALUE;
-  float mbrMaxY = Float.MIN_VALUE;
+  float mbrMaxX = -Float.MAX_VALUE;
+  float mbrMaxY = -Float.MAX_VALUE;
   
   float[] entriesMinX = null;
   float[] entriesMinY = null;
@@ -79,7 +79,7 @@ public class Node {
   }
   
   // delete entry. This is done by setting it to null and copying the last entry into its space.
-  void deleteEntry(int i, int minNodeEntries) {
+  void deleteEntry(int i) {
 	  int lastIndex = entryCount - 1;
     float deletedMinX = entriesMinX[i];
     float deletedMinY = entriesMinY[i];
@@ -95,12 +95,8 @@ public class Node {
 	  }
     entryCount--;
     
-    // if there are at least minNodeEntries, adjust the MBR.
-    // otherwise, don't bother, as the node will be 
-    // eliminated anyway.
-    if (entryCount >= minNodeEntries) {
-      recalculateMBRIfInfluencedBy(deletedMinX, deletedMinY, deletedMaxX, deletedMaxY);
-    }
+    // adjust the MBR
+    recalculateMBRIfInfluencedBy(deletedMinX, deletedMinY, deletedMaxX, deletedMaxY);
   } 
   
   // deletedMin/MaxX/Y is a rectangle that has just been deleted or made smaller.

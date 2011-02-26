@@ -49,13 +49,13 @@ import com.infomatiq.jsi.SpatialIndex;
  * primitive collections from the trove4j library.</p>
  * 
  * @author aled@sourceforge.net
- * @version 1.0b6
+ * @version 1.0b8
  */
 public class RTree implements SpatialIndex {
   private static final Logger log = Logger.getLogger(RTree.class.getName());
   private static final Logger deleteLog = Logger.getLogger(RTree.class.getName() + "-delete");
   
-  private static final String version = "1.0b6";
+  private static final String version = "1.0b8";
   
   // parameters of the tree
   private final static int DEFAULT_MAX_NODE_ENTRIES = 10;
@@ -283,7 +283,7 @@ public class RTree implements SpatialIndex {
   	} // while not found
   	
   	if (foundIndex != -1) {
-  	  n.deleteEntry(foundIndex, minNodeEntries);
+  	  n.deleteEntry(foundIndex);
       condenseTree(n);
       size--;
   	}
@@ -305,9 +305,9 @@ public class RTree implements SpatialIndex {
     // is not eliminated)
     if (size == 0) {
       root.mbrMinX = Float.MAX_VALUE;
-      root.mbrMaxX = Float.MIN_VALUE;
       root.mbrMinY = Float.MAX_VALUE;
-      root.mbrMaxY = Float.MIN_VALUE;
+      root.mbrMaxX = -Float.MAX_VALUE;
+      root.mbrMaxY = -Float.MAX_VALUE;
     }
 
     if (INTERNAL_CONSISTENCY_CHECKING) {
@@ -1088,7 +1088,7 @@ public class RTree implements SpatialIndex {
       // CT3 [Eliminiate under-full node] If N has too few entries,
       // delete En from P and add N to the list of eliminated nodes
       if (n.entryCount < minNodeEntries) {
-        parent.deleteEntry(parentEntry, minNodeEntries);
+        parent.deleteEntry(parentEntry);
         eliminatedNodeIds.push(n.nodeId);
       } else {
         // CT4 [Adjust covering rectangle] If N has not been eliminated,
@@ -1282,6 +1282,10 @@ public class RTree implements SpatialIndex {
     actualMBR.maxY = n.mbrMaxY;
     if (!actualMBR.equals(calculatedMBR)) {
       log.error("Error: Node " + nodeId + ", calculated MBR does not equal stored MBR");
+      if (actualMBR.minX != n.mbrMinX) log.error("  actualMinX=" + actualMBR.minX + ", calc=" + calculatedMBR.minX);
+      if (actualMBR.minY != n.mbrMinY) log.error("  actualMinY=" + actualMBR.minY + ", calc=" + calculatedMBR.minY);
+      if (actualMBR.maxX != n.mbrMaxX) log.error("  actualMaxX=" + actualMBR.maxX + ", calc=" + calculatedMBR.maxX);
+      if (actualMBR.maxY != n.mbrMaxY) log.error("  actualMaxY=" + actualMBR.maxY + ", calc=" + calculatedMBR.maxY);
       return false;
     }
     

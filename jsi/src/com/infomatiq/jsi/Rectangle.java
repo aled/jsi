@@ -36,9 +36,9 @@ public class Rectangle {
   
   public Rectangle() {
     minX = Float.MAX_VALUE;
-    maxX = Float.MIN_VALUE;
     minY = Float.MAX_VALUE;
-    maxY = Float.MIN_VALUE;
+    maxX = -Float.MAX_VALUE;
+    maxY = -Float.MAX_VALUE;
   }
   
   /**

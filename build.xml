@@ -2,7 +2,7 @@
 
 <!-- ANT script to build JSI -->
 
-<project name="JSI build" default="all" basedir=".">
+<project name="jsi" default="all" basedir=".">
 
   <!-- version number -->
   <property name="version" value="1.0b6"/>
@@ -99,6 +99,7 @@
         <fileset dir="${basedir}/jsi/src" includes="**/ReferenceCompareTest.java"/>
         <fileset dir="${basedir}/jsi/src" includes="**/DeleteAllEntriesTest.java"/>
         <fileset dir="${basedir}/jsi/src" includes="**/RectangleMaxValueTest.java"/>
+      	<fileset dir="${basedir}/jsi/src" includes="**/MoveEntriesTest.java"/>
       </batchtest>
     </junit>
   </target>
