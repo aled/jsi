@@ -42,7 +42,7 @@ import gnu.trove.TIntProcedure;
  * </p>
  * 
  * @author aled@sourceforge.net
- * @version 1.0b6
+ * @version 1.0b8
  */
 public class SortedList {
   private static final int DEFAULT_PREFERRED_MAXIMUM_SIZE = 10;

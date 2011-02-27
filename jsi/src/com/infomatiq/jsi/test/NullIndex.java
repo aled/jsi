@@ -32,10 +32,10 @@ import com.infomatiq.jsi.SpatialIndex;
  * testing framework.
  * 
  * @author  aled@sourceforge.net
- * @version 1.0b6
+ * @version 1.0b8
  */
 public class NullIndex implements SpatialIndex {
-  private static final String version = "1.0b6";
+  private static final String version = "1.0b8";
     
   /**
    * @see com.infomatiq.jsi.SpatialIndex#init(Properties)

@@ -27,7 +27,7 @@ import java.util.Properties;
  * spatial indexes. This includes the RTree and its variants.
  * 
  * @author  aled@sourceforge.net
- * @version 1.0b6
+ * @version 1.0b8
  */
 public interface SpatialIndex {
   

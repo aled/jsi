@@ -66,7 +66,7 @@ import gnu.trove.TFloatArrayList;
  * isn't the right data structure.
  * </p>
  * @author Aled Morris <aled@sourceforge.net>
- * @version 1.0b6
+ * @version 1.0b8
  */
 public class PriorityQueue {
   public static final boolean SORT_ORDER_ASCENDING = true;
