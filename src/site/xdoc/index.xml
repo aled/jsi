@@ -1,0 +1,62 @@
+<document>
+  <properties>
+    <author email="aled@sourceforge.net">Aled Morris</author>
+    <title>JSI (Java Spatial Index) RTree Library</title>
+  </properties>
+  <body>
+    <section name="Introduction">
+      <p>The Java Spatial Index project aims to maintain a high performance Java version of the RTree spatial indexing algorithm.
+      as described in the 1984 paper "R-trees: A Dynamic Index Structure for Spatial Searching" by Antonin Guttman.
+      (<a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.131.7887&amp;rep=rep1&amp;type=pdf">PDF on CiteSeerX</a>)</p>
+      <p>The code is open source, and released under the <a
+      href="http://www.gnu.org/copyleft/lesser.html">GNU Lesser General Public License</a>, version 2.1 or later.
+      </p>
+      <p>See the <a href="http://sourceforge.net/projects/jsi">SourceForge project page</a> for downloads. 
+      <a href="apidocs/index.html">Javadoc documentation</a> is available online.
+      </p>
+    </section>
+    
+    <section name="Overview">
+      <p>The JSI spatial index is deliberately limited in features,
+      and does a small number of things well. It particular, it is fast. On a test
+      machine, it takes about 500ms to add 10,000 entries
+      to the spatial index. By comparison, an alternative implementation (that seems
+      to be unmaintained now) takes over 6000ms (but it has more features).
+      </p>
+      
+      <p>The current release is 1.0, available at 
+      <a href="https://sourceforge.net/projects/jsi/files/m2_repo/net/sourceforge/jsi/jsi/1.0/jsi-1.0-project.zip/download">
+      http://sourceforge.net/projects/jsi/files/m2_repo/net/sourceforge/jsi/jsi/1.0/jsi-1.0-project.zip/download</a>. You will
+      need maven2 installed and a working internet connection to build this. The source
+      is included in the download zip file, but the CVS and SVN repositories on sourceforge are well out of date.
+      Development now happens at <a href="http://github.com/aled/jsi">http://github.com/aled/jsi</a>.</p>
+      
+      <p>In addition, you can download the binary jar at <a href="https://sourceforge.net/projects/jsi/files/m2_repo/net/sourceforge/jsi/jsi/1.0/jsi-1.0.jar/download">
+      http://sourceforge.net/projects/jsi/files/m2_repo/net/sourceforge/jsi/jsi/1.0/jsi-1.0.jar/download</a>.
+      </p>
+      
+      <p>The API includes the following operations:
+        <ul>
+          <li><font face="Arial">Add</font></li>
+          <li><font face="Arial">Delete</font></li>
+          <li><font face="Arial">Intersection query</font></li>
+          <li><font face="Arial">Nearest neighbour query</font></li>
+          <li><font face="Arial">Nearest N neighbours query</font></li>
+          <li><font face="Arial">Containment query</font></li>
+        </ul>
+        <br><a href="http://sourceforge.net"><img
+          src="http://sourceforge.net/sflogo.php?group_id=62486&amp;type=5"
+          width="210" height="62" border="0" alt="SourceForge.net Logo"/>
+        </a></br>
+      </p>
+ 
+      <p><small>
+        YourKit is kindly supporting open source projects with its full-featured Java Profiler.
+        YourKit, LLC is the creator of innovative and intelligent tools for profiling
+        Java and .NET applications. Take a look at YourKit's leading software products:
+        <a href="http://www.yourkit.com/java/profiler/index.jsp">YourKit Java Profiler</a> and
+        <a href="http://www.yourkit.com/.net/profiler/index.jsp">YourKit .NET Profiler</a>."
+      </small></p>
+    </section>
+  </body>
+</document>

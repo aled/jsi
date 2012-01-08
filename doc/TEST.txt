@@ -1,0 +1,10 @@
+These are the steps needed to check that the JSI library is working correctly. 
+Note this will take a very long time to run:
+
+% cd <location-of-pom.xml>
+% mvn test [This runs a short and quick test]
+% mvn -Dtest=ReferenceCompareTest_1000 test [Long test]
+% mvn -Dtest=ReferenceCompareTest_10000 test [Very long test]
+% mvn -Dtest=ReferenceCompareTest_100000 test [Ridiculously long test]
+
+If any errors occur, please raise an issue at https://github.com/aled/jsi/issues

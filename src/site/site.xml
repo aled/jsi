@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="Java Spatial Index">
+  <bannerLeft>
+    <name>JSI (Java Spatial Index) RTree Library</name>
+    <href>http://web.sourceforge.net/home/project-web/jsi/htdocs</href>
+  </bannerLeft>
+
+  <body>
+    <links>
+      <item name="SourceForge project page" href="http://sourceforge.net/projects/jsi" />
+      <item name="GitHub project page" href="http://github.com/aled/jsi"/>
+      <item name="Download" href="http://sourceforge.net/projects/jsi/files"/>
+    </links>
+    <!--<menu name="JSI" ref="reports"/>-->
+  </body>
+  
+</project>

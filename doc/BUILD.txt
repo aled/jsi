@@ -1,0 +1,23 @@
+To build the JSI library from source, install maven and run the following:
+
+% cd <location-of-pom.xml>
+% mvn compile
+
+This will generate two jar files; target/jsi-1.0.jar and target/jsi-test-1.0.jar. 
+The second is only required for running tests, and is not needed for production use.
+
+The following is a list of useful maven targets:
+  o clean 
+  o compile
+  o test
+  o -Dtest=ReferenceCompareTest_10000 test
+  o package	
+  o site
+  o assembly:single (create package only)
+  o site:deploy
+  o deploy
+
+
+
+
+
