@@ -43,7 +43,7 @@ public class BuildProperties {
     try {
       p.load(getClass().getClassLoader().getResourceAsStream("build.properties"));
       version = p.getProperty("version", "");
-      scmRevisionId = p.getProperty("git.commit.id", "");
+      scmRevisionId = p.getProperty("scmRevisionId", "");
     } catch (IOException e) {
       log.warn("Unable to read from build.properties");
     }
