@@ -18,17 +18,13 @@
 
 package com.infomatiq.jsi;
 
-import gnu.trove.TFloatArrayList;
-import gnu.trove.TIntArrayList;
-import gnu.trove.TIntObjectHashMap;
-import gnu.trove.TIntObjectIterator;
-import gnu.trove.TIntProcedure;
+import gnu.trove.iterator.TIntObjectIterator;
+import gnu.trove.list.array.TFloatArrayList;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.procedure.TIntProcedure;
 
 import java.util.Properties;
-
-import com.infomatiq.jsi.Point;
-import com.infomatiq.jsi.Rectangle;
-import com.infomatiq.jsi.SpatialIndex;
 
 /**
  * SimpleIndex

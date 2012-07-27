@@ -18,25 +18,16 @@
 
 package com.infomatiq.jsi;
 
-import gnu.trove.TIntProcedure;
+import gnu.trove.procedure.TIntProcedure;
 
 import java.util.Properties;
 
-import org.slf4j.Logger;import org.slf4j.LoggerFactory;
+import javax.swing.plaf.synth.Region;
 
-import sil.rtree.RTree;
-import sil.spatialindex.IData;
-import sil.spatialindex.INode;
-import sil.spatialindex.ISpatialIndex;
-import sil.spatialindex.IVisitor;
-import sil.spatialindex.Region;
-import sil.storagemanager.IStorageManager;
-import sil.storagemanager.MemoryStorageManager;
-import sil.storagemanager.PropertySet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.infomatiq.jsi.Point;
-import com.infomatiq.jsi.Rectangle;
-import com.infomatiq.jsi.SpatialIndex;
+import com.infomatiq.jsi.rtree.RTree;
 
 /**
  * Wrapper class for the Spatial Index Library (v0.43b) written by

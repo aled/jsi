@@ -18,13 +18,10 @@
 
 package com.infomatiq.jsi;
 
-import gnu.trove.TIntProcedure;
+import gnu.trove.procedure.TIntProcedure;
 
 import java.util.Properties;
 
-import com.infomatiq.jsi.Point;
-import com.infomatiq.jsi.Rectangle;
-import com.infomatiq.jsi.SpatialIndex;
 import com.infomatiq.jsi.rtree.RTree;
 
 /**
