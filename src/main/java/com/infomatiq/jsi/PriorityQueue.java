@@ -199,8 +199,8 @@ public class PriorityQueue {
     int tempValue = values.get(lastIndex);
     float tempPriority = priorities.get(lastIndex);
 
-    values.remove(lastIndex);
-    priorities.remove(lastIndex);
+    values.removeAt(lastIndex);
+    priorities.removeAt(lastIndex);
 
     if (lastIndex > 0) {
       demote(0, tempValue, tempPriority);
