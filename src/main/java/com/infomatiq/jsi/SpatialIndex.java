@@ -25,9 +25,6 @@ import java.util.Properties;
 /**
  * Defines methods that must be implemented by all 
  * spatial indexes. This includes the RTree and its variants.
- * 
- * @author  aled@sourceforge.net
- * @version 1.0
  */
 public interface SpatialIndex {
   

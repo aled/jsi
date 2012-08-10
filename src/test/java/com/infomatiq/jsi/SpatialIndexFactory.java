@@ -20,15 +20,13 @@ package com.infomatiq.jsi;
 
 import java.util.Properties;
 
-import org.slf4j.Logger;import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infomatiq.jsi.SpatialIndex;
 
 /**
  * Factory class used to create instances of spatial indexes
- * 
- * @author  aled@sourceforge.net
- * @version 1.0
  */
 public class SpatialIndexFactory {
   

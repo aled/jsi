@@ -43,9 +43,6 @@ import com.infomatiq.jsi.SpatialIndex;
  * Marios Hadjieleftheriou (marioh@cs.ucr.edu), with minor modifications.
  * 
  * Used to generate test results and performance comparisons.
- * 
- * @author aled@sourceforge.net
- * @version 1.0
  */
 public class SILWrapper implements SpatialIndex {
   
@@ -107,7 +104,7 @@ public class SILWrapper implements SpatialIndex {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point p, IntProcedure ip, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point p, gnu.trove.TIntProcedure ip, float)
    */
   public void nearest(Point p, TIntProcedure v, float furthestDistance) {
     tree.nearestNeighborQuery(1, 
@@ -116,7 +113,7 @@ public class SILWrapper implements SpatialIndex {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearestN(com.infomatiq.jsi.Point, com.infomatiq.jsi.IntProcedure, int, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, gnu.trove.TIntProcedure, int, float)
    */
   public void nearestN(Point p, TIntProcedure v, int n, float furthestDistance) {
     tree.nearestNeighborQuery(n, 
@@ -127,7 +124,7 @@ public class SILWrapper implements SpatialIndex {
   /**
    * Same as nearestN
    * 
-   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(com.infomatiq.jsi.Point, com.infomatiq.jsi.IntProcedure, int, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(Point, gnu.trove.TIntProcedure, int, float)
    */
   public void nearestNUnsorted(Point p, TIntProcedure v, int n, float furthestDistance) {
     nearestN(p, v, n, furthestDistance);
@@ -135,7 +132,7 @@ public class SILWrapper implements SpatialIndex {
 
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, IntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, gnu.trove.TIntProcedure)
    */
   public void intersects(Rectangle r, TIntProcedure v) {
     Region region = new Region(new double[] {r.minX, r.minY}, new double[] {r.maxX, r.maxY});  
@@ -143,7 +140,7 @@ public class SILWrapper implements SpatialIndex {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, IntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, gnu.trove.TIntProcedure)
    */
   public void contains(Rectangle r, TIntProcedure v) {
     Region region = new Region(new double[] {r.minX, r.minY}, new double[] {r.maxX, r.maxY});

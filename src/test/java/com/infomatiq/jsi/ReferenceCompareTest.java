@@ -30,9 +30,6 @@ import org.slf4j.LoggerFactory;
  *  
  * Generates results used for comparing the performance of the Java Spatial 
  * Index library against alternative implementations.
- * 
- * @author  aled@sourceforge.net
- * @version 1.0
  */
 public class ReferenceCompareTest extends TestCase {
 

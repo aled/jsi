@@ -29,9 +29,6 @@ import com.infomatiq.jsi.SpatialIndex;
 
 /**
  * ListDecorator
- * 
- * @author aled@sourceforge.net
- * @version 1.0
  */
 public class ListDecorator {
  SpatialIndex m_si = null;

@@ -65,8 +65,6 @@ import gnu.trove.TFloatArrayList;
  * implemented here - if this functionality is required, then a heap probably
  * isn't the right data structure.
  * </p>
- * @author Aled Morris <aled@sourceforge.net>
- * @version 1.0
  */
 public class PriorityQueue {
   public static final boolean SORT_ORDER_ASCENDING = true;

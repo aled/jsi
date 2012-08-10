@@ -30,9 +30,6 @@ import com.infomatiq.jsi.SpatialIndex;
  * An implementation of SpatialIndex that does absolutely nothing.
  * The purpose of this class is to measure the overhead of the
  * testing framework.
- * 
- * @author  aled@sourceforge.net
- * @version 1.0
  */
 public class NullIndex implements SpatialIndex {
     
@@ -43,31 +40,31 @@ public class NullIndex implements SpatialIndex {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point, IntProcedure, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point, gnu.trove.TIntProcedure, float)
    */
   public void nearest(Point p, TIntProcedure v, float distance) {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearestN(com.infomatiq.jsi.Point, com.infomatiq.jsi.IntProcedure, int, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, gnu.trove.TIntProcedure, int, float)
    */
   public void nearestN(Point p, TIntProcedure v, int n, float distance) {
   }
  
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(com.infomatiq.jsi.Point, com.infomatiq.jsi.IntProcedure, int, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(Point, gnu.trove.TIntProcedure, int, float)
    */
   public void nearestNUnsorted(Point p, TIntProcedure v, int n, float distance) {
   }
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, IntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, gnu.trove.TIntProcedure)
    */
   public void intersects(Rectangle r, TIntProcedure ip) {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, IntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, gnu.trove.TIntProcedure)
    */
   public void contains(Rectangle r, TIntProcedure ip) {
   }

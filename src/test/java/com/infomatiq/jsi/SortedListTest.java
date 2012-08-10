@@ -24,9 +24,6 @@ import junit.framework.TestCase;
 
 import com.infomatiq.jsi.rtree.SortedList;
 
-/**
- * @author aled@sourceforge.net
- */
 public class SortedListTest extends TestCase {
 
   public SortedListTest(String s) {

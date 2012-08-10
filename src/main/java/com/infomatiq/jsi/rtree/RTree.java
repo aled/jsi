@@ -49,9 +49,6 @@ import com.infomatiq.jsi.SpatialIndex;
  * <p>The main reason for the high speed of this RTree implementation is the 
  * avoidance of the creation of unnecessary objects, mainly achieved by using
  * primitive collections from the trove4j library.</p>
- * 
- * @author aled@sourceforge.net
- * @version 1.0
  */
 public class RTree implements SpatialIndex {
   private static final Logger log = LoggerFactory.getLogger(RTree.class);

@@ -27,9 +27,6 @@ import com.infomatiq.jsi.SpatialIndex;
 
 /**
  * SortedListDecorator
- * 
- * @author aled@sourceforge.net
- * @version 1.0
  */
 public class SortedListDecorator extends ListDecorator {
    

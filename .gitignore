@@ -5,4 +5,7 @@
 .settings
 target
 *~
+*.swp
+*.log
+
 

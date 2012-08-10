@@ -27,9 +27,6 @@ import org.slf4j.LoggerFactory;
 /**
  * Allows build properties to be retrieved at runtime. Currently, version and
  * scmRevisionId are implemented.
- * 
- * @author  aled@sourceforge.net
- * @version 1.0
  */
 public class BuildProperties {
   private static final Logger log = LoggerFactory.getLogger(BuildProperties.class);  

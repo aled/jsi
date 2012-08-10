@@ -41,9 +41,6 @@ import com.infomatiq.jsi.SpatialIndex;
  * than 1000 or so entries.</p>
  * 
  * <p>On the other hand, the add() and delete() methods are very fast :-)</p>
- * 
- * @author  aled@sourceforge.net
- * @version 1.0
  */
 public class SimpleIndex implements SpatialIndex {
   TIntObjectHashMap<Rectangle> m_map = new TIntObjectHashMap<Rectangle>();
@@ -80,7 +77,7 @@ public class SimpleIndex implements SpatialIndex {
   }
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearest(IntProcedure, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point, gnu.trove.TIntProcedure, float)
    */
   public void nearest(Point p, final TIntProcedure v, float furthestDistance) {
     TIntArrayList nearestList = nearest(p, furthestDistance); 
@@ -135,7 +132,7 @@ public class SimpleIndex implements SpatialIndex {
   }
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearestN(com.infomatiq.jsi.Point, com.infomatiq.jsi.IntProcedure, int, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, gnu.trove.TIntProcedure, int, float)
    */
   public void nearestN(Point p, final TIntProcedure v, int n, float furthestDistance) {
     TIntArrayList nearestList = nearestN(p, n, furthestDistance); 
@@ -150,14 +147,14 @@ public class SimpleIndex implements SpatialIndex {
   /**
    * Same as nearestN
    * 
-   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(com.infomatiq.jsi.Point, com.infomatiq.jsi.IntProcedure, int, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(Point, gnu.trove.TIntProcedure, int, float)
    */
   public void nearestNUnsorted(Point p, final TIntProcedure v, int n, float furthestDistance) {
     nearestN(p, v, n, furthestDistance);
   } 
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, IntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, gnu.trove.TIntProcedure)
    */
   public void intersects(Rectangle r, TIntProcedure v) {
     TIntObjectIterator<Rectangle> i = m_map.iterator();
@@ -172,7 +169,7 @@ public class SimpleIndex implements SpatialIndex {
   }
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, IntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, gnu.trove.TIntProcedure)
    */
   public void contains(Rectangle r, TIntProcedure v) {
    TIntObjectIterator<Rectangle> i = m_map.iterator();
@@ -233,7 +230,7 @@ public class SimpleIndex implements SpatialIndex {
   }
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#Version
+   * @see com.infomatiq.jsi.SpatialIndex#getVersion
    */
   public String getVersion() {
     return "SimpleIndex-" + BuildProperties.getVersion();

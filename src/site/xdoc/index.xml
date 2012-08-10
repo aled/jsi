@@ -11,7 +11,7 @@
       <p>The code is open source, and released under the <a
       href="http://www.gnu.org/copyleft/lesser.html">GNU Lesser General Public License</a>, version 2.1 or later.
       </p>
-      <p>See the <a href="http://sourceforge.net/projects/jsi">SourceForge project page</a> for downloads. 
+      <p>See the <a href="http://sourceforge.net/projects/jsi">SourceForge project page</a> for more information. 
       <a href="apidocs/index.html">Javadoc documentation</a> is available online.
       </p>
     </section>
@@ -24,25 +24,25 @@
       to be unmaintained now) takes over 6000ms (but it has more features).
       </p>
       
-      <p>The current release is 1.0, available at 
-      <a href="https://sourceforge.net/projects/jsi/files/m2_repo/net/sourceforge/jsi/jsi/1.0/jsi-1.0-project.zip/download">
-      http://sourceforge.net/projects/jsi/files/m2_repo/net/sourceforge/jsi/jsi/1.0/jsi-1.0-project.zip/download</a>. You will
-      need maven2 installed and a working internet connection to build this. The source
-      is included in the download zip file, but the CVS and SVN repositories on sourceforge are well out of date.
-      Development now happens at <a href="http://github.com/aled/jsi">http://github.com/aled/jsi</a>.</p>
-      
-      <p>In addition, you can download the binary jar at <a href="https://sourceforge.net/projects/jsi/files/m2_repo/net/sourceforge/jsi/jsi/1.0/jsi-1.0.jar/download">
-      http://sourceforge.net/projects/jsi/files/m2_repo/net/sourceforge/jsi/jsi/1.0/jsi-1.0.jar/download</a>.
+      <p>The current release is 1.0.0, and binaries are available in a zip file at 
+      <a href="http://sourceforge.net/projects/jsi/files">http://sourceforge.net/projects/jsi/files</a>, or via a maven repository hosted 
+      at <a href="http://sourceforge.net/projects/jsi/files/m2_repo">http://sourceforge.net/projects/jsi/files/m2_repo</a>. 
+      See <a href="http://github.com/aled/jsi-examples">http://github.com/aled/jsi-examples</a> for examples that use the
+      JSI library via this maven repo.
+      </p>
+      <p>The source is hosted at github, at <a href="http://github.com/aled/jsi">http://github.com/aled/jsi</a>. Feel
+      free to send pull requests. To build the source or run tests, you will need maven 2 (NOT maven 3) installed 
+      and a working internet connection. Note that the CVS and SVN repositories on sourceforge are well out of date.
       </p>
       
       <p>The API includes the following operations:
         <ul>
-          <li><font face="Arial">Add</font></li>
-          <li><font face="Arial">Delete</font></li>
-          <li><font face="Arial">Intersection query</font></li>
-          <li><font face="Arial">Nearest neighbour query</font></li>
-          <li><font face="Arial">Nearest N neighbours query</font></li>
-          <li><font face="Arial">Containment query</font></li>
+          <li>Add</li>
+          <li>Delete</li>
+          <li>Intersection query</li>
+          <li>Nearest neighbour query</li>
+          <li>Nearest N neighbours query</li>
+          <li>Containment query</li>
         </ul>
         <br><a href="http://sourceforge.net"><img
           src="http://sourceforge.net/sflogo.php?group_id=62486&amp;type=5"

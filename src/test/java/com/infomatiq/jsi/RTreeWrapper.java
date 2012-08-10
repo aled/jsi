@@ -33,9 +33,6 @@ import com.infomatiq.jsi.rtree.RTree;
  * Actually the point to introduce the same overhead as 
  * the SILWrapper class, so that performance comparisons
  * can be made.
- * 
- * @author aled@sourceforge.net
- * @version 1.0
  */
 public class RTreeWrapper implements SpatialIndex {
   private RTree tree;
@@ -63,7 +60,7 @@ public class RTreeWrapper implements SpatialIndex {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearest(Rectangle, IntProcedure, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point, gnu.trove.TIntProcedure, float)
    */
   public void nearest(Point p, TIntProcedure v, float furthestDistance) {
     tree.nearest(new Point(p.x, p.y),
@@ -72,7 +69,7 @@ public class RTreeWrapper implements SpatialIndex {
   }
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearestN(com.infomatiq.jsi.Point, com.infomatiq.jsi.IntProcedure, int, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, gnu.trove.TIntProcedure, int, float)
    */
   public void nearestN(Point p, TIntProcedure v, int n, float furthestDistance) {
     tree.nearestN(new Point(p.x, p.y),
@@ -82,7 +79,7 @@ public class RTreeWrapper implements SpatialIndex {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(com.infomatiq.jsi.Point, com.infomatiq.jsi.IntProcedure, int, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(Point, gnu.trove.TIntProcedure, int, float)
    */
   public void nearestNUnsorted(Point p, TIntProcedure v, int n, float furthestDistance) {
     tree.nearestNUnsorted(new Point(p.x, p.y),
@@ -92,7 +89,7 @@ public class RTreeWrapper implements SpatialIndex {
   }
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, IntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, gnu.trove.TIntProcedure)
    */
   public void intersects(Rectangle r, TIntProcedure ip) {
     Rectangle r2 = new Rectangle(r.minX, r.minY, r.maxX, r.maxY);  
@@ -100,7 +97,7 @@ public class RTreeWrapper implements SpatialIndex {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, IntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, gnu.trove.TIntProcedure)
    */
   public void contains(Rectangle r, TIntProcedure ip) {
     Rectangle r2 = new Rectangle(r.minX, r.minY, r.maxX, r.maxY);

@@ -4,7 +4,7 @@
 
   <groupId>net.sourceforge.jsi</groupId>
   <artifactId>jsi</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>jsi</name>
@@ -13,6 +13,51 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+
+  <repositories>
+ 
+    <!-- 
+       Maven is UNBELIEVABLY STUPID. By default, it will install corrupt dependencies in your local repository,
+       DESPITE the fact that checksum verification has failed. Change that default here using 'checksumPolicy'.
+
+       (Note: this is required, because we are using sourceforge to host a maven repository for one of the dependencies. 
+       Unfortunately sourceforge returns an 'error' html page if you try to download a dependency that doesn't exist there;
+       it fails checksum validation but maven installs it anyway, thus breaking all future builds until you delete the offending 
+       file. I can't find any way to prevent maven randomly querying the jsi maven repo for dependencies that I know don't exist there.)
+    -->
+
+    <repository>
+      <id>maven central</id>         
+      <name>maven central</name>
+      <url>http://repo1.maven.org/maven2</url>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
+    </repository>
+
+    <repository>
+      <id>jsi.sourceforge.net</id>
+      <name>sourceforge jsi repository</name>
+      <url>http://sourceforge.net/projects/jsi/files/m2_repo</url>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </snapshots>
+    </repository>
+  </repositories>
 
   <build>
     <resources>
@@ -47,29 +92,32 @@
         </plugin>
       </plugins>
     </pluginManagement>
-    
-    <plugins>
+
+  <plugins>
+   
+      <!-- Build currently tested on maven 2.2.1. Maven 3 does NOT work.          -->
+      <!-- Allow versions that are greater or equal to 2.2.1, and less than 3.0.0 -->
       <plugin>
-        <artifactId>maven-install-plugin</artifactId>
-        <version>2.3.1</version>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>1.1.1</version>
         <executions>
           <execution>
-            <id>install-sil-library</id>
-            <phase>initialize</phase>
-            <configuration>
-              <file>lib/test/sil-0.44.2b.jar</file>
-              <groupId>sil</groupId>
-              <artifactId>sil</artifactId>
-              <packaging>jar</packaging>
-              <version>0.44.2b</version>
-            </configuration>
+            <id>enforce-versions</id>
             <goals>
-              <goal>install-file</goal>
+              <goal>enforce</goal>
             </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[2.2.1,3.0.0)</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
           </execution>
         </executions>
       </plugin>
-      
+     
       <!-- This plugin checks that the source is compatible with Java 1.5 -->
       <!-- Commented out as not necessary to run on every build -->
       <!--
@@ -99,6 +147,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
+        <version>2.1.2</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -123,8 +172,6 @@
         </executions>
       </plugin>
 
-      <!-- Uncomment this to have dependences copied to the target directory -->
-      <!--      
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -149,22 +196,19 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+              <outputDirectory>${project.build.directory}/test-dependencies</outputDirectory>
               <excludeScope>compile</excludeScope>
             </configuration>
           </execution>
         </executions>
       </plugin>
-      -->
       
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>2.2.2</version>
         <configuration>
           <descriptors>
-            <descriptor>src/main/assembly/project-zip.xml</descriptor>
-            
-            <!--<descriptor>src/main/assembly/full-zip.xml</descriptor>-->
+            <descriptor>src/main/assembly/with-dependencies-zip.xml</descriptor>-->
           </descriptors>
         </configuration>
         <executions>
@@ -182,8 +226,18 @@
         <artifactId>maven-deploy-plugin</artifactId>
         <version>2.7</version>
       </plugin>
-
     </plugins>
+
+    <!-- the following needed for maven version 3 -->
+    <!--
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+         <artifactId>wagon-ssh</artifactId>
+         <version>2.2</version>
+      </extension>
+    </extensions>
+    --> 
   </build>
 
   <dependencies>
@@ -195,19 +249,26 @@
       <scope>compile</scope>
     </dependency>
 
-    <!-- actual logging at runtime (e.g. when running tests) will be done by the JDK -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jdk14</artifactId>
-      <version>1.6.3</version>
-      <scope>test</scope>
-    </dependency>
-
     <dependency>
       <groupId>net.sf.trove4j</groupId>
       <artifactId>trove4j</artifactId>
       <version>2.0.2</version>
       <scope>compile</scope>
+    </dependency>
+
+    <!-- actual logging at runtime (e.g. when running tests) will be done by logback -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.0.6</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>1.0.6</version>
+      <scope>test</scope>
     </dependency>
 
     <dependency>

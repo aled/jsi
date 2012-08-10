@@ -1,4 +1,4 @@
-//   SpatialIndexTest.java
+//   Script.java
 //   Java Spatial Index Library
 //   Copyright (C) 2002-2005 Infomatiq Limited.
 //  
@@ -38,17 +38,15 @@ import java.util.StringTokenizer;
 
 import junit.framework.TestCase;
 
-import org.slf4j.Logger;import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.infomatiq.jsi.Point;
 import com.infomatiq.jsi.Rectangle;
 import com.infomatiq.jsi.SpatialIndex;
 
 /**
- * SpatialIndexTest
- * 
- * @author  aled@sourceforge.net
- * @version 1.0
+ * Script
  */
 public class Script {
   

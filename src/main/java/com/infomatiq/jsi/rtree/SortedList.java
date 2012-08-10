@@ -40,9 +40,6 @@ import gnu.trove.TIntProcedure;
  * This class is not optimised for large values of preferredMaximumSize. Values greater than,
  * say, 5, are not recommended.
  * </p>
- * 
- * @author aled@sourceforge.net
- * @version 1.0
  */
 public class SortedList {
   private static final int DEFAULT_PREFERRED_MAXIMUM_SIZE = 10;
