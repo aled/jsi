@@ -44,11 +44,18 @@ import com.infomatiq.jsi.SpatialIndex;
  * performance if there is enough physical memory to avoid paging.</li>
  * <li>Low memory requirements.</li>
  * <li>Fast add performance.</li>
- * </ul></p> 
+ * <li>Support for simultaneous query operations from multiple threads.</li>
+ * </ul></p>
  * 
  * <p>The main reason for the high speed of this RTree implementation is the 
  * avoidance of the creation of unnecessary objects, mainly achieved by using
  * primitive collections from the trove4j library.</p>
+ *
+ * <p>The query methods (nearest, nearestN, nearestNUnsorted, intersects,
+ * contains, size, getBounds) can be called simultaneously from
+ * different threads.
+ * However, modifying operations (add, delete, init) must not be called at
+ * the same time as any other operation.</p>
  */
 public class RTree implements SpatialIndex {
   private static final Logger log = LoggerFactory.getLogger(RTree.class);
@@ -79,7 +86,21 @@ public class RTree implements SpatialIndex {
   // of nodes when a split is propagated up the tree.
   private TIntStack parents = new TIntStack();
   private TIntStack parentsEntry = new TIntStack();
-  
+
+  // Thread local stacks, for use in thread safe query functions.
+  private final ThreadLocal<TIntStack> localParents = new ThreadLocal<TIntStack>() {
+      @Override
+      protected TIntStack initialValue() {
+          return new TIntStack();
+      }
+  };
+  private final ThreadLocal<TIntStack> localParentsEntry = new ThreadLocal<TIntStack>() {
+      @Override
+      protected TIntStack initialValue() {
+          return new TIntStack();
+      }
+  };
+
   // initialisation
   private int treeHeight = 1; // leaves are always level 1
   private int rootNodeId = 0;
@@ -95,16 +116,44 @@ public class RTree implements SpatialIndex {
   
   // List of nearest rectangles. Use a member variable to
   // avoid recreating the object each time nearest() is called.
-  private TIntArrayList nearestIds = new TIntArrayList();
-  private TIntArrayList savedValues = new TIntArrayList();
-  private float savedPriority = 0;
+  // Thread local to allow query functions to be called from different threads.
+  private final ThreadLocal<TIntArrayList> localNearestIds = new ThreadLocal<TIntArrayList>() {
+      @Override
+      protected TIntArrayList initialValue() {
+          return new TIntArrayList();
+      }
+  };
+  private final ThreadLocal<TIntArrayList> localSavedValues = new ThreadLocal<TIntArrayList>() {
+      @Override
+      protected TIntArrayList initialValue() {
+          return new TIntArrayList();
+      }
+  };
+  private final ThreadLocal<Float> localSavedPriority = new ThreadLocal<Float>() {
+      @Override
+      protected Float initialValue() {
+          return 0.0f;
+      }
+  };
 
   // List of nearestN rectangles
-  private SortedList nearestNIds = new SortedList();
+  // Thread local to allow query functions to be called from different threads.
+  private final ThreadLocal<SortedList> localNearestNIds = new ThreadLocal<SortedList>() {
+      @Override
+      protected SortedList initialValue() {
+          return new SortedList();
+      }
+  };
   
   // List of nearestN rectanges, used in the alternative nearestN implementation.
-  private PriorityQueue distanceQueue = 
-    new PriorityQueue(PriorityQueue.SORT_ORDER_ASCENDING);
+  // Thread local to allow query functions to be called from different threads.
+  private final ThreadLocal<PriorityQueue> localDistanceQueue = new ThreadLocal<PriorityQueue>() {
+      @Override
+      protected PriorityQueue initialValue() {
+          return new PriorityQueue(PriorityQueue.SORT_ORDER_ASCENDING);
+      }
+  };
+
   
   /**
    * Constructor. Use init() method to initialize parameters of the RTree.
@@ -134,7 +183,9 @@ public class RTree implements SpatialIndex {
    * in a node. The default value is half of the MaxNodeEntries value (rounded
    * down), which is used if the property is not specified or is less than 1.
    * </ul></p>
-   * 
+   *
+   * <p>Not thread safe, must not be called at the same time as any other operation.</p>
+   *
    * @see com.infomatiq.jsi.SpatialIndex#init(Properties)
    */
   public void init(Properties props) {
@@ -175,6 +226,8 @@ public class RTree implements SpatialIndex {
   }
   
   /**
+   * <p>Not thread safe, must not be called at the same time as any other operation.</p>
+   *
    * @see com.infomatiq.jsi.SpatialIndex#add(Rectangle, int)
    */
   public void add(Rectangle r, int id) {
@@ -192,6 +245,8 @@ public class RTree implements SpatialIndex {
   }
   
   /**
+   * <p>Not thread safe, must not be called at the same time as any other operation.</p>
+   *
    * Adds a new entry at a specified level in the tree
    */
   private void add(float minX, float minY, float maxX, float maxY, int id, int level) {
@@ -229,6 +284,8 @@ public class RTree implements SpatialIndex {
   } 
   
   /**
+   * <p>Not thread safe, must not be called at the same time as any other operation.</p>
+   *
    * @see com.infomatiq.jsi.SpatialIndex#delete(Rectangle, int)
    */
   public boolean delete(Rectangle r, int id) {
@@ -316,19 +373,30 @@ public class RTree implements SpatialIndex {
   }
   
   /**
+   * <p>Thread safe, may be called at the same time as other query operations.</p>
+   *
    * @see com.infomatiq.jsi.SpatialIndex#nearest(Point, TIntProcedure, float)
    */
   public void nearest(Point p, TIntProcedure v, float furthestDistance) {
     Node rootNode = getNode(rootNodeId);
-   
+
+    // Get thread specific instance of nearest ids list.
+    final TIntArrayList nearestIds = localNearestIds.get();
+
     float furthestDistanceSq = furthestDistance * furthestDistance;
-    nearest(p, rootNode, furthestDistanceSq);
+    nearest(p, rootNode, furthestDistanceSq, nearestIds);
    
     nearestIds.forEach(v);
     nearestIds.reset();
   }
    
-  private void createNearestNDistanceQueue(Point p, int count, float furthestDistance) {
+  private void createNearestNDistanceQueue(Point p, int count, float furthestDistance, PriorityQueue distanceQueue) {
+    // Get thread specific helper collections
+    final TIntStack parents = localParents.get();
+    final TIntStack parentsEntry = localParentsEntry.get();
+    final TIntArrayList savedValues = localSavedValues.get();
+    float savedPriority = localSavedPriority.get();
+
     distanceQueue.reset();
     distanceQueue.setSortOrder(PriorityQueue.SORT_ORDER_DESCENDING);
     
@@ -416,14 +484,21 @@ public class RTree implements SpatialIndex {
         }                       
       }
       parents.pop();
-      parentsEntry.pop();  
+      parentsEntry.pop();
     }
+
+    localSavedPriority.set(savedPriority);
   }
   
   /**
+   * <p>Thread safe, may be called at the same time as other query operations.</p>
+   *
    * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(Point, TIntProcedure, int, float)
    */
   public void nearestNUnsorted(Point p, TIntProcedure v, int count, float furthestDistance) {
+    // Get thread specific helper collection
+    final PriorityQueue distanceQueue = localDistanceQueue.get();
+
     // This implementation is designed to give good performance
     // where
     //   o N is high (100+)
@@ -435,7 +510,7 @@ public class RTree implements SpatialIndex {
     // return exactly the same items as the the original version (nearestN_orig), in particular,
     // more than N items will be returned if items N and N+x have the
     // same priority. 
-    createNearestNDistanceQueue(p, count, furthestDistance);
+    createNearestNDistanceQueue(p, count, furthestDistance, distanceQueue);
    
     while (distanceQueue.size() > 0) {
       v.execute(distanceQueue.getValue());
@@ -444,10 +519,15 @@ public class RTree implements SpatialIndex {
   }
   
   /**
+   * <p>Thread safe, may be called at the same time as other query operations.</p>
+   *
    * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, TIntProcedure, int, float)
    */
   public void nearestN(Point p, TIntProcedure v, int count, float furthestDistance) {
-    createNearestNDistanceQueue(p, count, furthestDistance);
+    // Get thread specific helper collection
+    final PriorityQueue distanceQueue = localDistanceQueue.get();
+
+    createNearestNDistanceQueue(p, count, furthestDistance, distanceQueue);
     
     distanceQueue.setSortOrder(PriorityQueue.SORT_ORDER_ASCENDING);
     
@@ -462,8 +542,15 @@ public class RTree implements SpatialIndex {
    * @deprecated Use new NearestN or NearestNUnsorted instead.
    * 
    * This implementation of nearestN is only suitable for small values of N (ie less than 10).
-   */ 
+   *
+   * <p>Thread safe, may be called at the same time as other query operations.</p>
+   */
   public void nearestN_orig(Point p, TIntProcedure v, int count, float furthestDistance) {
+    // Get thread specific helper collection
+    final SortedList nearestNIds = localNearestNIds.get();
+    final TIntStack parents = localParents.get();
+    final TIntStack parentsEntry = localParentsEntry.get();
+
     // return immediately if given an invalid "count" parameter
     if (count <= 0) {
       return;
@@ -527,13 +614,15 @@ public class RTree implements SpatialIndex {
         }                       
       }
       parents.pop();
-      parentsEntry.pop();  
+      parentsEntry.pop();
     }
    
     nearestNIds.forEachId(v);
   }
    
   /**
+   * <p>Thread safe, may be called at the same time as other query operations.</p>
+   *
    * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, TIntProcedure)
    */
   public void intersects(Rectangle r, TIntProcedure v) {
@@ -542,12 +631,18 @@ public class RTree implements SpatialIndex {
   }
 
   /**
+   * <p>Thread safe, may be called at the same time as other query operations.</p>
+   *
    * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, TIntProcedure)
    */
   public void contains(Rectangle r, TIntProcedure v) {
     // find all rectangles in the tree that are contained by the passed rectangle
     // written to be non-recursive (should model other searches on this?)
-        
+
+    // Get thread local helper collections
+    final TIntStack parents = localParents.get();
+    final TIntStack parentsEntry = localParentsEntry.get();
+
     parents.reset();
     parents.push(rootNodeId);
     
@@ -598,6 +693,8 @@ public class RTree implements SpatialIndex {
   }
 
   /**
+   * <p>Thread safe, may be called at the same time as other query operations.</p>
+   *
    * @see com.infomatiq.jsi.SpatialIndex#size()
    */
   public int size() {
@@ -605,6 +702,8 @@ public class RTree implements SpatialIndex {
   }
 
   /**
+   * <p>Thread safe, may be called at the same time as other query operations.</p>
+   *
    * @see com.infomatiq.jsi.SpatialIndex#getBounds()
    */
   public Rectangle getBounds() {
@@ -1013,7 +1112,7 @@ public class RTree implements SpatialIndex {
    * 
    * TODO rewrite this to be non-recursive?
    */
-  private float nearest(Point p, Node n, float furthestDistanceSq) {
+  private float nearest(Point p, Node n, float furthestDistanceSq, TIntArrayList nearestIds) {
     for (int i = 0; i < n.entryCount; i++) {
       float tempDistanceSq = Rectangle.distanceSq(n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i], p.x, p.y);
       if (n.isLeaf()) { // for leaves, the distance is an actual nearest distance 
@@ -1028,7 +1127,7 @@ public class RTree implements SpatialIndex {
                // a rectangle nearer than actualNearest
          if (tempDistanceSq <= furthestDistanceSq) {
            // search the child node
-           furthestDistanceSq = nearest(p, getNode(n.ids[i]), furthestDistanceSq);
+           furthestDistanceSq = nearest(p, getNode(n.ids[i]), furthestDistanceSq, nearestIds);
          }
       }
     }
