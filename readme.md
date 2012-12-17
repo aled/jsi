@@ -20,14 +20,16 @@ Briefly, you need to initialize the RTree like this:
 Then add some rectangles; each one has an ID.
 
     final Rectangle[] rects = new Rectangle[100];
-    si.add(new Rectangle(0, 10, 0, 10), 0);
-    si.add(new Rectangle(0, 11, 1, 20), 1);
+    rects[0] = new Rectangle(0, 10, 0, 10);
+    rects[1] = new Rectangle(0, 11, 1, 20);
+    si.add(rects[0], 0);
+    si.add(rects[1], 1);
     ...
 
 and finally query for the 3 nearest rectangles to (36.3, 84.3) by calling the nearestN() method.
 
     si.nearestN(
-      new Point(36.3f, 84.3f),      // the point for which want to find nearby rectangles
+      new Point(36.3f, 84.3f),      // the point for which we want to find nearby rectangles
       new TIntProcedure() {         // a procedure whose execute() method will be called with the results
         public boolean execute(int i) {
           log.info("Rectangle " + i + " " + rects[i] + ", distance=" + rects[i].distance(p));
