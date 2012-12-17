@@ -4,7 +4,7 @@
 
   <groupId>net.sourceforge.jsi</groupId>
   <artifactId>jsi</artifactId>
-  <version>1.0.0</version>
+  <version>1.1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>jsi</name>
@@ -252,7 +252,7 @@
     <dependency>
       <groupId>net.sf.trove4j</groupId>
       <artifactId>trove4j</artifactId>
-      <version>2.0.2</version>
+      <version>3.0.3</version>
       <scope>compile</scope>
     </dependency>
 
