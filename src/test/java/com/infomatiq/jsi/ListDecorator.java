@@ -18,14 +18,10 @@
 
 package com.infomatiq.jsi;
 
-import gnu.trove.TIntProcedure;
+import gnu.trove.procedure.TIntProcedure;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.infomatiq.jsi.Point;
-import com.infomatiq.jsi.Rectangle;
-import com.infomatiq.jsi.SpatialIndex;
 
 /**
  * ListDecorator
