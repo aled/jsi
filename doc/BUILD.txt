@@ -19,7 +19,7 @@ The following is a list of useful maven targets:
   
 To import the project into eclipse, run mvn eclipse:eclipse, and then set the M2_REPO variable
 in Window -> Preferences -> Java -> Build Path -> Classpath Variables to point to your local
-maven repository.
+maven repository (e.g. ~/.m2/repository)
 
 
 
