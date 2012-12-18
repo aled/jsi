@@ -1,3 +1,5 @@
+[![Build Status](https://www.travis-ci.org/aled/jsi.png?branch=master)](https://www.travis-ci.org/aled/jsi)
+
 Overview
 --------
 The Java Spatial Index project aims to maintain a high performance Java version of the RTree spatial indexing algorithm as described in the 1984 paper "R-trees: A Dynamic Index Structure for Spatial Searching" by Antonin Guttman.  (<a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.131.7887&amp;rep=rep1&amp;type=pdf">PDF on CiteSeerX</a>)
