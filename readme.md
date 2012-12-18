@@ -52,7 +52,7 @@ Alternatively, maven users can use this repository in their pom.xml:
 
 Building
 -------
-To build the JSI library from source, install maven 2 and run the following:
+To build the JSI library from source, install maven 3 and run the following:
 
     % cd <location-of-pom.xml>
     % mvn package

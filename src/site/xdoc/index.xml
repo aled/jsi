@@ -31,7 +31,7 @@
       JSI library via this maven repo.
       </p>
       <p>The source is hosted at github, at <a href="http://github.com/aled/jsi">http://github.com/aled/jsi</a>. Feel
-      free to send pull requests. To build the source or run tests, you will need maven 2 (NOT maven 3) installed 
+      free to send pull requests. To build the source or run tests, you will need maven 3 installed 
       and a working internet connection. Note that the CVS and SVN repositories on sourceforge are well out of date.
       </p>
       

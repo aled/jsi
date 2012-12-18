@@ -95,8 +95,8 @@
 
   <plugins>
    
-      <!-- Build currently tested on maven 2.2.1. Maven 3 does NOT work.          -->
-      <!-- Allow versions that are greater or equal to 2.2.1, and less than 3.0.0 -->
+      <!-- Build currently tested on maven 3.0.4                                  -->
+      <!-- Allow versions that are greater or equal to 3.0.0, and less than 4.0.0 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
@@ -110,7 +110,7 @@
             <configuration>
               <rules>
                 <requireMavenVersion>
-                  <version>[2.2.1,3.0.0)</version>
+                  <version>[3.0.0,4.0.0)</version>
                 </requireMavenVersion>
               </rules>
             </configuration>
