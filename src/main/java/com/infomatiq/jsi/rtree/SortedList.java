@@ -18,6 +18,8 @@
 
 package com.infomatiq.jsi.rtree;
 
+import java.io.Serializable;
+
 import gnu.trove.list.array.TFloatArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.procedure.TIntProcedure;
@@ -41,7 +43,9 @@ import gnu.trove.procedure.TIntProcedure;
  * say, 5, are not recommended.
  * </p>
  */
-public class SortedList {
+public class SortedList implements Serializable {
+  private static final long serialVersionUID = -1549539544212731131L;
+
   private static final int DEFAULT_PREFERRED_MAXIMUM_SIZE = 10;
 
   private int preferredMaximumSize = 1;

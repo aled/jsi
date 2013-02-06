@@ -25,6 +25,7 @@ import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.stack.TIntStack;
 import gnu.trove.stack.array.TIntArrayStack;
 
+import java.io.Serializable;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -51,7 +52,8 @@ import com.infomatiq.jsi.SpatialIndex;
  * avoidance of the creation of unnecessary objects, mainly achieved by using
  * primitive collections from the trove4j library.</p>
  */
-public class RTree implements SpatialIndex {
+public class RTree implements SpatialIndex, Serializable {
+  private static final long serialVersionUID = 5946232781609920309L;
   private static final Logger log = LoggerFactory.getLogger(RTree.class);
   private static final Logger deleteLog = LoggerFactory.getLogger(RTree.class.getName() + "-delete");
 
