@@ -89,20 +89,6 @@ public class RTree implements SpatialIndex, Serializable {
   // of nodes when a split is propagated up the tree.
   private TIntStack parents = new TIntArrayStack();
   private TIntStack parentsEntry = new TIntArrayStack();
-  
-  // Thread local stacks, for use in thread safe query functions.
-  private final ThreadLocal<TIntStack> localParents = new ThreadLocal<TIntStack>() {
-      @Override
-      protected TIntStack initialValue() {
-          return new TIntArrayStack();
-      }
-  };
-  private final ThreadLocal<TIntStack> localParentsEntry = new ThreadLocal<TIntStack>() {
-      @Override
-      protected TIntStack initialValue() {
-          return new TIntArrayStack();
-      }
-  };
 
 
   // initialisation
@@ -117,46 +103,6 @@ public class RTree implements SpatialIndex, Serializable {
   // so that they can be reused. Store the IDs of nodes
   // which can be reused.
   private TIntStack deletedNodeIds = new TIntArrayStack();
-
-  // List of nearest rectangles. Use a member variable to
-  // avoid recreating the object each time nearest() is called.
-  // Thread local to allow query functions to be called from different threads.
-  private final ThreadLocal<TIntArrayList> localNearestIds = new ThreadLocal<TIntArrayList>() {
-      @Override
-      protected TIntArrayList initialValue() {
-          return new TIntArrayList();
-      }
-  };
-  private final ThreadLocal<TIntArrayList> localSavedValues = new ThreadLocal<TIntArrayList>() {
-      @Override
-      protected TIntArrayList initialValue() {
-          return new TIntArrayList();
-      }
-  };
-  private final ThreadLocal<Float> localSavedPriority = new ThreadLocal<Float>() {
-      @Override
-      protected Float initialValue() {
-          return 0.0f;
-      }
-  };
-
-  // List of nearestN rectangles
-  // Thread local to allow query functions to be called from different threads.
-  private final ThreadLocal<SortedList> localNearestNIds = new ThreadLocal<SortedList>() {
-      @Override
-      protected SortedList initialValue() {
-          return new SortedList();
-      }
-  };
-
-  // List of nearestN rectanges, used in the alternative nearestN implementation.
-  // Thread local to allow query functions to be called from different threads.
-  private final ThreadLocal<PriorityQueue> localDistanceQueue = new ThreadLocal<PriorityQueue>() {
-      @Override
-      protected PriorityQueue initialValue() {
-          return new PriorityQueue(PriorityQueue.SORT_ORDER_ASCENDING);
-      }
-  };
 
   /**
    * Constructor. Use init() method to initialize parameters of the RTree.
@@ -384,7 +330,7 @@ public class RTree implements SpatialIndex, Serializable {
     Node rootNode = getNode(rootNodeId);
 
     // Get thread specific instance of nearest ids list.
-    final TIntArrayList nearestIds = localNearestIds.get();
+    final TIntArrayList nearestIds = new TIntArrayList();
     
     float furthestDistanceSq = furthestDistance * furthestDistance;
     nearest(p, rootNode, furthestDistanceSq, nearestIds);
@@ -395,10 +341,10 @@ public class RTree implements SpatialIndex, Serializable {
 
   private void createNearestNDistanceQueue(Point p, int count, float furthestDistance, PriorityQueue distanceQueue) {
       // Get thread specific helper collections
-      final TIntStack parents = localParents.get();
-      final TIntStack parentsEntry = localParentsEntry.get();
-      final TIntArrayList savedValues = localSavedValues.get();
-      float savedPriority = localSavedPriority.get();
+      final TIntStack parents = new TIntArrayStack();
+      final TIntStack parentsEntry = new TIntArrayStack();
+      final TIntArrayList savedValues = new TIntArrayList();
+      float savedPriority = 0.0f;
 
 
     distanceQueue.reset();
@@ -490,8 +436,6 @@ public class RTree implements SpatialIndex, Serializable {
       parents.pop();
       parentsEntry.pop();
     }
-
-    localSavedPriority.set(savedPriority);
   }
 
   /**
@@ -501,7 +445,7 @@ public class RTree implements SpatialIndex, Serializable {
    */
   public void nearestNUnsorted(Point p, TIntProcedure v, int count, float furthestDistance) {
       // Get thread specific helper collection
-      final PriorityQueue distanceQueue = localDistanceQueue.get();
+      final PriorityQueue distanceQueue = new PriorityQueue(PriorityQueue.SORT_ORDER_ASCENDING);
 
     // This implementation is designed to give good performance
     // where
@@ -529,7 +473,7 @@ public class RTree implements SpatialIndex, Serializable {
    */
   public void nearestN(Point p, TIntProcedure v, int count, float furthestDistance) {
     // Get thread specific helper collection
-    final PriorityQueue distanceQueue = localDistanceQueue.get();
+    final PriorityQueue distanceQueue = new PriorityQueue(PriorityQueue.SORT_ORDER_ASCENDING);
 
     createNearestNDistanceQueue(p, count, furthestDistance, distanceQueue);
 
@@ -553,9 +497,9 @@ public class RTree implements SpatialIndex, Serializable {
   @Deprecated
   public void nearestN_orig(Point p, TIntProcedure v, int count, float furthestDistance) {
       // Get thread specific helper collection
-      final SortedList nearestNIds = localNearestNIds.get();
-      final TIntStack parents = localParents.get();
-      final TIntStack parentsEntry = localParentsEntry.get();
+      final SortedList nearestNIds = new SortedList();
+      final TIntStack parents = new TIntArrayStack();
+      final TIntStack parentsEntry = new TIntArrayStack();
 
 
     // return immediately if given an invalid "count" parameter
@@ -647,8 +591,8 @@ public class RTree implements SpatialIndex, Serializable {
     // written to be non-recursive (should model other searches on this?)
 
     // Get thread local helper collections
-    final TIntStack parents = localParents.get();
-    final TIntStack parentsEntry = localParentsEntry.get();
+    final TIntStack parents = new TIntArrayStack();
+    final TIntStack parentsEntry = new TIntArrayStack();
 
 
     parents.clear();
