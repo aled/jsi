@@ -19,10 +19,13 @@
 
 package com.infomatiq.jsi.rtree;
 
+import java.io.Serializable;
+
 /**
  * <p>Used by RTree. There are no public methods in this class.</p>
  */
-public class Node {
+public class Node implements Serializable {
+  private static final long serialVersionUID = -2823316966528817396L;
   int nodeId = 0;
   float mbrMinX = Float.MAX_VALUE;
   float mbrMinY = Float.MAX_VALUE;
