@@ -18,14 +18,12 @@
 
 package com.infomatiq.jsi;
 
+import com.infomatiq.jsi.rtree.RTree;
 import gnu.trove.procedure.TIntProcedure;
+import junit.framework.TestCase;
 
 import java.util.Properties;
 import java.util.Random;
-
-import junit.framework.TestCase;
-
-import com.infomatiq.jsi.rtree.RTree;
 
 public class DeleteAllEntriesTest extends TestCase {
 
@@ -52,7 +50,7 @@ public class DeleteAllEntriesTest extends TestCase {
     Random r = new Random();
     r.setSeed(0);
     for (int i = 0; i < numRects; i+=1) {
-      rects[i] = new Rectangle(r.nextFloat(), r.nextFloat(), r.nextFloat(), r.nextFloat());
+      rects[i] = new Rectangle(r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble());
     }
     
     run(1, 2, numRects);
@@ -90,13 +88,13 @@ public class DeleteAllEntriesTest extends TestCase {
       rtree.intersects(testRect, counter);
       assertTrue(counter.count == 0);
       
-      rtree.nearest(testPoint, counter, Float.MAX_VALUE);
+      rtree.nearest(testPoint, counter, Double.MAX_VALUE);
       assertTrue(counter.count == 0);
       
-      rtree.nearestN(testPoint, counter, 10, Float.MAX_VALUE);
+      rtree.nearestN(testPoint, counter, 10, Double.MAX_VALUE);
       assertTrue(counter.count == 0);
       
-      rtree.nearestNUnsorted(testPoint, counter, 10, Float.MAX_VALUE);
+      rtree.nearestNUnsorted(testPoint, counter, 10, Double.MAX_VALUE);
       assertTrue(counter.count == 0);
       
       rtree.contains(testRect, counter);

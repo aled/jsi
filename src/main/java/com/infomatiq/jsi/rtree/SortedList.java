@@ -18,11 +18,11 @@
 
 package com.infomatiq.jsi.rtree;
 
-import java.io.Serializable;
-
-import gnu.trove.list.array.TFloatArrayList;
+import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.procedure.TIntProcedure;
+
+import java.io.Serializable;
 
 /**
  * <p>
@@ -50,7 +50,7 @@ public class SortedList implements Serializable {
 
   private int preferredMaximumSize = 1;
   private TIntArrayList ids = null;
-  private TFloatArrayList priorities = null;
+  private TDoubleArrayList priorities = null;
 
   public void init(int preferredMaximumSize) {
     this.preferredMaximumSize = preferredMaximumSize;
@@ -65,11 +65,11 @@ public class SortedList implements Serializable {
 
   public SortedList() {
     ids = new TIntArrayList(DEFAULT_PREFERRED_MAXIMUM_SIZE);
-    priorities = new TFloatArrayList(DEFAULT_PREFERRED_MAXIMUM_SIZE);
+    priorities = new TDoubleArrayList(DEFAULT_PREFERRED_MAXIMUM_SIZE);
   }
 
-  public void add(int id, float priority) {
-    float lowestPriority = Float.NEGATIVE_INFINITY;
+  public void add(int id, double priority) {
+    double lowestPriority = Double.NEGATIVE_INFINITY;
 
     if (priorities.size() > 0) {
       lowestPriority = priorities.get(priorities.size() - 1);
@@ -107,11 +107,11 @@ public class SortedList implements Serializable {
   }
 
   /**
-   * return the lowest priority currently stored, or float.NEGATIVE_INFINITY if no
+   * return the lowest priority currently stored, or double.NEGATIVE_INFINITY if no
    * entries are stored
    */
-  public float getLowestPriority() {
-    float lowestPriority = Float.NEGATIVE_INFINITY;
+  public double getLowestPriority() {
+    double lowestPriority = Double.NEGATIVE_INFINITY;
     if (priorities.size() >= preferredMaximumSize) {
       lowestPriority = priorities.get(priorities.size() - 1);
     }

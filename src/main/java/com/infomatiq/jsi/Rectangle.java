@@ -29,13 +29,13 @@ public class Rectangle {
    * use primitives instead of arrays for the coordinates of the rectangle,
    * to reduce memory requirements.
    */
-  public float minX, minY, maxX, maxY;
+  public double minX, minY, maxX, maxY;
 
   public Rectangle() {
-    minX = Float.MAX_VALUE;
-    minY = Float.MAX_VALUE;
-    maxX = -Float.MAX_VALUE;
-    maxY = -Float.MAX_VALUE;
+    minX = Double.MAX_VALUE;
+    minY = Double.MAX_VALUE;
+    maxX = -Double.MAX_VALUE;
+    maxY = -Double.MAX_VALUE;
   }
 
   /**
@@ -46,7 +46,7 @@ public class Rectangle {
    * @param x2 coordinate of the opposite corner
    * @param y2 (see x2)
    */
-  public Rectangle(float x1, float y1, float x2, float y2) {
+  public Rectangle(double x1, double y1, double x2, double y2) {
     set(x1, y1, x2, y2);
   }
 
@@ -58,7 +58,7 @@ public class Rectangle {
    * @param x2 coordinate of the opposite corner
    * @param y2 (see x2)
    */
-  public void set(float x1, float y1, float x2, float y2) {
+  public void set(double x1, double y1, double x2, double y2) {
     minX = Math.min(x1, x2);
     maxX = Math.max(x1, x2);
     minY = Math.min(y1, y2);
@@ -117,8 +117,8 @@ public class Rectangle {
    *
    * @return true if r1 intersects r2, false otherwise.
    */
-  static public boolean intersects(float r1MinX, float r1MinY, float r1MaxX, float r1MaxY,
-                                 float r2MinX, float r2MinY, float r2MaxX, float r2MaxY) {
+  static public boolean intersects(double r1MinX, double r1MinY, double r1MaxX, double r1MaxY,
+                                 double r2MinX, double r2MinY, double r2MaxX, double r2MaxY) {
     return r1MaxX >= r2MinX && r1MinX <= r2MaxX && r1MaxY >= r2MinY && r1MinY <= r2MaxY;
   }
 
@@ -148,8 +148,8 @@ public class Rectangle {
    *
    * @return true if r1 contains r2, false otherwise.
    */
-  static public boolean contains(float r1MinX, float r1MinY, float r1MaxX, float r1MaxY,
-                                 float r2MinX, float r2MinY, float r2MaxX, float r2MaxY) {
+  static public boolean contains(double r1MinX, double r1MinY, double r1MaxX, double r1MaxY,
+                                 double r2MinX, double r2MinY, double r2MaxX, double r2MaxY) {
     return r1MaxX >= r2MaxX && r1MinX <= r2MinX && r1MaxY >= r2MaxY && r1MinY <= r2MinY;
   }
 
@@ -173,10 +173,10 @@ public class Rectangle {
    *
    * @return distance beween this rectangle and the passed point.
    */
-  public float distance(Point p) {
-    float distanceSquared = 0;
+  public double distance(Point p) {
+    double distanceSquared = 0;
 
-    float temp = minX - p.x;
+    double temp = minX - p.x;
     if (temp < 0) {
       temp = p.x - maxX;
     }
@@ -194,7 +194,7 @@ public class Rectangle {
       distanceSquared += (temp * temp);
     }
 
-    return (float) Math.sqrt(distanceSquared);
+    return  Math.sqrt(distanceSquared);
   }
 
   /**
@@ -210,13 +210,13 @@ public class Rectangle {
    *
    * @return distance beween this rectangle and the passed point.
    */
-  static public float distance(float minX, float minY, float maxX, float maxY, float pX, float pY) {
-    return (float) Math.sqrt(distanceSq(minX, minY, maxX, maxY, pX, pY));
+  static public double distance(double minX, double minY, double maxX, double maxY, double pX, double pY) {
+    return (double) Math.sqrt(distanceSq(minX, minY, maxX, maxY, pX, pY));
   }
 
-  static public float distanceSq(float minX, float minY, float maxX, float maxY, float pX, float pY) {
-    float distanceSqX = 0;
-    float distanceSqY = 0;
+  static public double distanceSq(double minX, double minY, double maxX, double maxY, double pX, double pY) {
+    double distanceSqX = 0;
+    double distanceSqY = 0;
 
     if (minX > pX) {
       distanceSqX = minX - pX;
@@ -246,10 +246,10 @@ public class Rectangle {
    * @return distance between this rectangle and the passed rectangle
    */
 
-  public float distance(Rectangle r) {
-    float distanceSquared = 0;
-    float greatestMin = Math.max(minX, r.minX);
-    float leastMax    = Math.min(maxX, r.maxX);
+  public double distance(Rectangle r) {
+    double distanceSquared = 0;
+    double greatestMin = Math.max(minX, r.minX);
+    double leastMax    = Math.min(maxX, r.maxX);
     if (greatestMin > leastMax) {
       distanceSquared += ((greatestMin - leastMax) * (greatestMin - leastMax));
     }
@@ -258,7 +258,7 @@ public class Rectangle {
     if (greatestMin > leastMax) {
       distanceSquared += ((greatestMin - leastMax) * (greatestMin - leastMax));
     }
-    return (float) Math.sqrt(distanceSquared);
+    return (double) Math.sqrt(distanceSquared);
   }
 
   /**
@@ -271,8 +271,8 @@ public class Rectangle {
    *
    * @return enlargement
    */
-  public float enlargement(Rectangle r) {
-    float enlargedArea = (Math.max(maxX, r.maxX) - Math.min(minX, r.minX)) *
+  public double enlargement(Rectangle r) {
+    double enlargedArea = (Math.max(maxX, r.maxX) - Math.min(minX, r.minX)) *
                          (Math.max(maxY, r.maxY) - Math.min(minY, r.minY));
 
     return enlargedArea - area();
@@ -293,9 +293,9 @@ public class Rectangle {
     *
     * @return enlargement
     */
-  static public float enlargement(float r1MinX, float r1MinY, float r1MaxX, float r1MaxY,
-                                  float r2MinX, float r2MinY, float r2MaxX, float r2MaxY) {
-    float r1Area = (r1MaxX - r1MinX) * (r1MaxY - r1MinY);
+  static public double enlargement(double r1MinX, double r1MinY, double r1MaxX, double r1MaxY,
+                                  double r2MinX, double r2MinY, double r2MaxX, double r2MaxY) {
+    double r1Area = (r1MaxX - r1MinX) * (r1MaxY - r1MinY);
 
     if (r1Area == Float.POSITIVE_INFINITY) {
       return 0; // cannot enlarge an infinite rectangle...
@@ -306,7 +306,7 @@ public class Rectangle {
     if (r2MaxX > r1MaxX) r1MaxX = r2MaxX;
     if (r2MaxY > r1MaxY) r1MaxY = r2MaxY;
 
-    float r1r2UnionArea = (r1MaxX - r1MinX) * (r1MaxY - r1MinY);
+    double r1r2UnionArea = (r1MaxX - r1MinX) * (r1MaxY - r1MinY);
 
     if (r1r2UnionArea == Float.POSITIVE_INFINITY) {
       // if a finite rectangle is enlarged and becomes infinite,
@@ -321,7 +321,7 @@ public class Rectangle {
    *
    * @return The area of this rectangle
    */
-  public float area() {
+  public double area() {
     return (maxX - minX) * (maxY - minY);
   }
 
@@ -335,7 +335,7 @@ public class Rectangle {
    *
    * @return The area of the rectangle
    */
-  static public float area(float minX, float minY, float maxX, float maxY) {
+  static public double area(double minX, double minY, double maxX, double maxY) {
     return (maxX - minX) * (maxY - minY);
   }
 
@@ -379,13 +379,17 @@ public class Rectangle {
 
   @Override
   public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = prime * result + Float.floatToIntBits(this.maxX);
-      result = prime * result + Float.floatToIntBits(this.maxY);
-      result = prime * result + Float.floatToIntBits(this.minX);
-      result = prime * result + Float.floatToIntBits(this.minY);
-      return result;
+    int result;
+    long temp;
+    temp = Double.doubleToLongBits(minX);
+    result = (int) (temp ^ (temp >>> 32));
+    temp = Double.doubleToLongBits(minY);
+    result = 31 * result + (int) (temp ^ (temp >>> 32));
+    temp = Double.doubleToLongBits(maxX);
+    result = 31 * result + (int) (temp ^ (temp >>> 32));
+    temp = Double.doubleToLongBits(maxY);
+    result = 31 * result + (int) (temp ^ (temp >>> 32));
+    return result;
   }
 
   /**
@@ -395,7 +399,7 @@ public class Rectangle {
    * @param o The object to compare with this rectangle
    */
   @Override
-public boolean equals(Object o) {
+  public boolean equals(Object o) {
     boolean equals = false;
     if (o instanceof Rectangle) {
       Rectangle r = (Rectangle) o;
@@ -433,15 +437,15 @@ public boolean equals(Object o) {
    * Utility methods (not used by JSI); added to
    * enable this to be used as a generic rectangle class
    */
-  public float width() {
+  public double width() {
     return maxX - minX;
   }
 
-  public float height() {
+  public double height() {
     return maxY - minY;
   }
 
-  public float aspectRatio() {
+  public double aspectRatio() {
     return width() / height();
   }
 

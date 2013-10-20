@@ -18,32 +18,14 @@
 
 package com.infomatiq.jsi;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.Random;
-import java.util.StringTokenizer;
-
 import junit.framework.TestCase;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.infomatiq.jsi.Point;
-import com.infomatiq.jsi.Rectangle;
-import com.infomatiq.jsi.SpatialIndex;
+import java.io.*;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Script
@@ -56,7 +38,7 @@ public class Script {
   static final int REFERENCE_COMPARISON = 1;
   static final int REFERENCE_GENERATE = 2;
   
-  private float canvasSize = 100000F;
+  private double canvasSize = 100000d;
 //  private TestCase testCase;
 //  
 //  public ScriptRunner(TestCase t) {
@@ -81,7 +63,7 @@ public class Script {
         p.getProperty("TreeVariant") + "," +
         size + "," + 
         count + "," + 
-        (timeMillis/1000.0) / (float) count);
+        (timeMillis/1000.0) / (double) count);
       pw.flush();
       pw.close();
     } catch (Throwable t) {
@@ -107,23 +89,23 @@ public class Script {
     }  
   }
   
-  private float quantize(double d, int quantizer) {
+  private double quantize(double d, int quantizer) {
     if (quantizer <= 0) {
-      return (float) d;
+      return (double) d;
     }
     
     d /= quantizer;
     d = Math.round(d);
     d *= quantizer;
     
-    return (float) d;
+    return (double) d;
   }
   
-  private Rectangle getRandomRectangle(Random r, float rectangleSize, float canvasSize, int quantizer) {
-    float x1 = quantize(r.nextGaussian() * canvasSize, quantizer);
-    float y1 = quantize(r.nextGaussian() * canvasSize, quantizer);
-    float x2 = x1 + quantize(r.nextGaussian() * rectangleSize, quantizer);
-    float y2 = y1 + quantize(r.nextGaussian() * rectangleSize, quantizer);
+  private Rectangle getRandomRectangle(Random r, double rectangleSize, double canvasSize, int quantizer) {
+    double x1 = quantize(r.nextGaussian() * canvasSize, quantizer);
+    double y1 = quantize(r.nextGaussian() * canvasSize, quantizer);
+    double x2 = x1 + quantize(r.nextGaussian() * rectangleSize, quantizer);
+    double y2 = y1 + quantize(r.nextGaussian() * rectangleSize, quantizer);
     
     return new Rectangle(x1, y1, x2, y2);
   }
@@ -249,7 +231,7 @@ public class Script {
           } else if (operation.equals("ADDRANDOM")) {
             int count = Integer.parseInt(st.nextToken());
             int startId = Integer.parseInt(st.nextToken());
-            float rectangleSize = Float.parseFloat(st.nextToken());
+            double rectangleSize = Double.parseDouble(st.nextToken());
             
             if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
               writeOutput(outputBuffer.toString(), outputFile, referenceFile);
@@ -268,7 +250,7 @@ public class Script {
             }
             long time = System.currentTimeMillis() - startTime;
             if (log.isDebugEnabled()) {
-              log.debug("Added " + count + " entries in " + time +  "ms (" + time / (float) count + " ms per add)");
+              log.debug("Added " + count + " entries in " + time +  "ms (" + time / (double) count + " ms per add)");
             }
             if (testType == PERFORMANCE) {
                writePerformanceLog("add", indexType, testId, indexProperties, si.size(), time, count);
@@ -276,7 +258,7 @@ public class Script {
           } else if (operation.equals("DELETERANDOM")) {
             int count = Integer.parseInt(st.nextToken());
             int startId = Integer.parseInt(st.nextToken());
-            float rectangleSize = Float.parseFloat(st.nextToken());
+            double rectangleSize = Double.parseDouble(st.nextToken());
             
             if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
               writeOutput(outputBuffer.toString(), outputFile, referenceFile);
@@ -300,7 +282,7 @@ public class Script {
             }
             long time = System.currentTimeMillis() - startTime;
             if (log.isDebugEnabled()) {
-              log.debug("Attempted to delete " + count + " entries (" + successfulDeleteCount + " successful) in " + time +  "ms (" + time / (float) count + " ms per delete)");
+              log.debug("Attempted to delete " + count + " entries (" + successfulDeleteCount + " successful) in " + time +  "ms (" + time / (double) count + " ms per delete)");
             }
             if (testType == PERFORMANCE) {
               writePerformanceLog("delete", indexType, testId, indexProperties, si.size(), time, count);              
@@ -317,10 +299,10 @@ public class Script {
             int totalEntriesReturned = 0;
             
             for (int id = 0; id < queryCount; id++) {
-              float x = (float) random.nextGaussian() * canvasSize;
-              float y = (float) random.nextGaussian() * canvasSize;
+              double x = (double) random.nextGaussian() * canvasSize;
+              double y = (double) random.nextGaussian() * canvasSize;
               
-              List<Integer> l = ld.nearest(new Point(x, y), Float.POSITIVE_INFINITY);
+              List<Integer> l = ld.nearest(new Point(x, y), Double.POSITIVE_INFINITY);
               totalEntriesReturned += l.size();
               
               if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
@@ -338,7 +320,7 @@ public class Script {
             } 
             long time = System.currentTimeMillis() - startTime;
             if (log.isDebugEnabled()) {
-              log.debug("NearestQueried " + queryCount + " times in " + time +  "ms. Per query: " + time / (float) queryCount + " ms, " + (totalEntriesReturned / (float) queryCount) + " entries");
+              log.debug("NearestQueried " + queryCount + " times in " + time +  "ms. Per query: " + time / (double) queryCount + " ms, " + (totalEntriesReturned / (double) queryCount) + " entries");
             }
             if (testType == PERFORMANCE) {
               writePerformanceLog("nearest", indexType, testId, indexProperties, si.size(), time, queryCount);              
@@ -355,10 +337,10 @@ public class Script {
             int totalEntriesReturned = 0;
             
             for (int id = 0; id < queryCount; id++) {
-              float x = (float) random.nextGaussian() * canvasSize;
-              float y = (float) random.nextGaussian() * canvasSize;
+              double x = (double) random.nextGaussian() * canvasSize;
+              double y = (double) random.nextGaussian() * canvasSize;
               
-              List<Integer> l = ld.nearestN(new Point(x, y), n, Float.POSITIVE_INFINITY);
+              List<Integer> l = ld.nearestN(new Point(x, y), n, Double.POSITIVE_INFINITY);
               
               totalEntriesReturned += l.size();
               
@@ -378,14 +360,14 @@ public class Script {
             } 
             long time = System.currentTimeMillis() - startTime;
             if (log.isDebugEnabled()) {
-              log.debug("NearestNQueried " + queryCount + " times in " + time +  "ms. Per query: " + time / (float) queryCount + " ms, " + (totalEntriesReturned / (float) queryCount) + " entries");
+              log.debug("NearestNQueried " + queryCount + " times in " + time +  "ms. Per query: " + time / (double) queryCount + " ms, " + (totalEntriesReturned / (double) queryCount) + " entries");
             }
             if (testType == PERFORMANCE) {
               writePerformanceLog("nearestN", indexType, testId, indexProperties, si.size(), time, queryCount);              
             }
           } else if (operation.equals("INTERSECTRANDOM")) {
             int queryCount = Integer.parseInt(st.nextToken());
-            float rectangleSize = Float.parseFloat(st.nextToken());
+            double rectangleSize = Double.parseDouble(st.nextToken());
             
             if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
               writeOutput(outputBuffer.toString(), outputFile, referenceFile);
@@ -412,7 +394,7 @@ public class Script {
             }
             long time = System.currentTimeMillis() - startTime;
             if (log.isDebugEnabled()) {
-              log.debug("IntersectQueried " + queryCount + " times in " + time +  "ms. Per query: " + time / (float) queryCount + " ms, " + (totalEntriesReturned / (float) queryCount) + " entries");
+              log.debug("IntersectQueried " + queryCount + " times in " + time +  "ms. Per query: " + time / (double) queryCount + " ms, " + (totalEntriesReturned / (double) queryCount) + " entries");
             }
             if (testType == PERFORMANCE) {
               writePerformanceLog("intersect", indexType, testId, indexProperties, si.size(), time, queryCount);              
@@ -420,7 +402,7 @@ public class Script {
           } 
           else if (operation.equals("CONTAINSRANDOM")) {
             int queryCount = Integer.parseInt(st.nextToken());
-            float rectangleSize = Float.parseFloat(st.nextToken());
+            double rectangleSize = Double.parseDouble(st.nextToken());
             
             if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
               writeOutput(outputBuffer.toString(), outputFile, referenceFile);
@@ -447,7 +429,7 @@ public class Script {
             }
             long time = System.currentTimeMillis() - startTime;
             if (log.isDebugEnabled()) {
-              log.debug("ContainsQueried " + queryCount + " times in " + time +  "ms. Per query: " + time / (float) queryCount + " ms, " + (totalEntriesReturned / (float) queryCount) + " entries");
+              log.debug("ContainsQueried " + queryCount + " times in " + time +  "ms. Per query: " + time / (double) queryCount + " ms, " + (totalEntriesReturned / (double) queryCount) + " entries");
             }
             if (testType == PERFORMANCE) {
               writePerformanceLog("contains", indexType, testId, indexProperties, si.size(), time, queryCount);              
@@ -455,10 +437,10 @@ public class Script {
           } 
           else if (operation.equals("ADD")) {
             int id = Integer.parseInt(st.nextToken());
-            float x1 = Float.parseFloat(st.nextToken());
-            float y1 = Float.parseFloat(st.nextToken());
-            float x2 = Float.parseFloat(st.nextToken());
-            float y2 = Float.parseFloat(st.nextToken());
+            double x1 = Double.parseDouble(st.nextToken());
+            double y1 = Double.parseDouble(st.nextToken());
+            double x2 = Double.parseDouble(st.nextToken());
+            double y2 = Double.parseDouble(st.nextToken());
              
             si.add(new Rectangle(x1, y1, x2, y2), id);
              
@@ -469,10 +451,10 @@ public class Script {
           } 
           else if (operation.equals("DELETE")) {
             int id = Integer.parseInt(st.nextToken());
-            float x1 = Float.parseFloat(st.nextToken());
-            float y1 = Float.parseFloat(st.nextToken());
-            float x2 = Float.parseFloat(st.nextToken());
-            float y2 = Float.parseFloat(st.nextToken());
+            double x1 = Double.parseDouble(st.nextToken());
+            double y1 = Double.parseDouble(st.nextToken());
+            double x2 = Double.parseDouble(st.nextToken());
+            double y2 = Double.parseDouble(st.nextToken());
              
             boolean deleted = si.delete(new Rectangle(x1, y1, x2, y2), id);
              
@@ -486,10 +468,10 @@ public class Script {
             }
           } 
           else if (operation.equals("NEAREST")) {
-            float x = Float.parseFloat(st.nextToken());
-            float y = Float.parseFloat(st.nextToken());
+            double x = Double.parseDouble(st.nextToken());
+            double y = Double.parseDouble(st.nextToken());
              
-            List<Integer> l = ld.nearest(new Point(x, y), Float.POSITIVE_INFINITY);
+            List<Integer> l = ld.nearest(new Point(x, y), Double.POSITIVE_INFINITY);
             
             if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
               outputBuffer.append(" : OK");
@@ -503,10 +485,10 @@ public class Script {
             }
           } 
           else if (operation.equals("INTERSECT")) {
-            float x1 = Float.parseFloat(st.nextToken());
-            float y1 = Float.parseFloat(st.nextToken());
-            float x2 = Float.parseFloat(st.nextToken());
-            float y2 = Float.parseFloat(st.nextToken());
+            double x1 = Double.parseDouble(st.nextToken());
+            double y1 = Double.parseDouble(st.nextToken());
+            double x2 = Double.parseDouble(st.nextToken());
+            double y2 = Double.parseDouble(st.nextToken());
             
             List<Integer> l = ld.intersects(new Rectangle(x1, y1, x2, y2));
             

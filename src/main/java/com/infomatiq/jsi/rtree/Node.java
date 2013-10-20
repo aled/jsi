@@ -27,15 +27,15 @@ import java.io.Serializable;
 public class Node implements Serializable {
   private static final long serialVersionUID = -2823316966528817396L;
   int nodeId = 0;
-  float mbrMinX = Float.MAX_VALUE;
-  float mbrMinY = Float.MAX_VALUE;
-  float mbrMaxX = -Float.MAX_VALUE;
-  float mbrMaxY = -Float.MAX_VALUE;
+  double mbrMinX = Double.MAX_VALUE;
+  double mbrMinY = Double.MAX_VALUE;
+  double mbrMaxX = -Double.MAX_VALUE;
+  double mbrMaxY = -Double.MAX_VALUE;
   
-  float[] entriesMinX = null;
-  float[] entriesMinY = null;
-  float[] entriesMaxX = null;
-  float[] entriesMaxY = null;
+  double[] entriesMinX = null;
+  double[] entriesMinY = null;
+  double[] entriesMaxX = null;
+  double[] entriesMaxY = null;
   
   int[] ids = null;
   int level;
@@ -44,14 +44,14 @@ public class Node implements Serializable {
   Node(int nodeId, int level, int maxNodeEntries) {
     this.nodeId = nodeId;
     this.level = level;
-    entriesMinX = new float[maxNodeEntries];
-    entriesMinY = new float[maxNodeEntries];
-    entriesMaxX = new float[maxNodeEntries];
-    entriesMaxY = new float[maxNodeEntries];
+    entriesMinX = new double[maxNodeEntries];
+    entriesMinY = new double[maxNodeEntries];
+    entriesMaxX = new double[maxNodeEntries];
+    entriesMaxY = new double[maxNodeEntries];
     ids = new int[maxNodeEntries];
   }
    
-  void addEntry(float minX, float minY, float maxX, float maxY, int id) {
+  void addEntry(double minX, double minY, double maxX, double maxY, int id) {
     ids[entryCount] = id;
     entriesMinX[entryCount] = minX;
     entriesMinY[entryCount] = minY;
@@ -67,7 +67,7 @@ public class Node implements Serializable {
   }
   
   // Return the index of the found entry, or -1 if not found
-  int findEntry(float minX, float minY, float maxX, float maxY, int id) {
+  int findEntry(double minX, double minY, double maxX, double maxY, int id) {
     for (int i = 0; i < entryCount; i++) {
     	if (id == ids[i] && 
           entriesMinX[i] == minX && entriesMinY[i] == minY &&
@@ -81,10 +81,10 @@ public class Node implements Serializable {
   // delete entry. This is done by setting it to null and copying the last entry into its space.
   void deleteEntry(int i) {
 	  int lastIndex = entryCount - 1;
-    float deletedMinX = entriesMinX[i];
-    float deletedMinY = entriesMinY[i];
-    float deletedMaxX = entriesMaxX[i];
-    float deletedMaxY = entriesMaxY[i];
+    double deletedMinX = entriesMinX[i];
+    double deletedMinY = entriesMinY[i];
+    double deletedMaxX = entriesMaxX[i];
+    double deletedMaxY = entriesMaxY[i];
     
     if (i != lastIndex) {
       entriesMinX[i] = entriesMinX[lastIndex];
@@ -101,7 +101,7 @@ public class Node implements Serializable {
   
   // deletedMin/MaxX/Y is a rectangle that has just been deleted or made smaller.
   // Thus, the MBR is only recalculated if the deleted rectangle influenced the old MBR
-  void recalculateMBRIfInfluencedBy(float deletedMinX, float deletedMinY, float deletedMaxX, float deletedMaxY) {
+  void recalculateMBRIfInfluencedBy(double deletedMinX, double deletedMinY, double deletedMaxX, double deletedMaxY) {
     if (mbrMinX == deletedMinX || mbrMinY == deletedMinY || mbrMaxX == deletedMaxX || mbrMaxY == deletedMaxY) { 
       recalculateMBR();   
     }
