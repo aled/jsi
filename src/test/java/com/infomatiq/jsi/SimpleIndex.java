@@ -18,7 +18,7 @@
 
 package com.infomatiq.jsi;
 
-import gnu.trove.list.array.TFloatArrayList;
+import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.iterator.TIntObjectIterator;
@@ -52,15 +52,15 @@ public class SimpleIndex implements SpatialIndex {
   /**
    * Nearest
    */
-  private TIntArrayList nearest(Point p, float furthestDistance) {
+  private TIntArrayList nearest(Point p, double furthestDistance) {
     TIntArrayList ret = new TIntArrayList();
-    float nearestDistance = furthestDistance;
+    double nearestDistance = furthestDistance;
     TIntObjectIterator<Rectangle> i = m_map.iterator();
     while (i.hasNext()) {
       i.advance();
       int currentId = i.key();
       Rectangle currentRectangle = i.value(); 
-      float distance = currentRectangle.distance(p);
+      double distance = currentRectangle.distance(p);
       if (distance < nearestDistance) {
         nearestDistance = distance;
         ret.clear();         
@@ -73,9 +73,9 @@ public class SimpleIndex implements SpatialIndex {
   }
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point, gnu.trove.TIntProcedure, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point, gnu.trove.procedure.TIntProcedure, double)
    */
-  public void nearest(Point p, final TIntProcedure v, float furthestDistance) {
+  public void nearest(Point p, final TIntProcedure v, double furthestDistance) {
     TIntArrayList nearestList = nearest(p, furthestDistance); 
     nearestList.forEach(new TIntProcedure() {
       public boolean execute(int id) {
@@ -85,16 +85,16 @@ public class SimpleIndex implements SpatialIndex {
     });
   } 
   
-  private TIntArrayList nearestN(Point p, int n, float furthestDistance) {
+  private TIntArrayList nearestN(Point p, int n, double furthestDistance) {
     TIntArrayList ids = new TIntArrayList();
-    TFloatArrayList distances = new TFloatArrayList();
+    TDoubleArrayList distances = new TDoubleArrayList();
     
     TIntObjectIterator<Rectangle> iter = m_map.iterator();
     while (iter.hasNext()) {
       iter.advance();
       int currentId = iter.key();
       Rectangle currentRectangle = iter.value(); 
-      float distance = currentRectangle.distance(p);
+      double distance = currentRectangle.distance(p);
       
       if (distance <= furthestDistance) {
         int insertionIndex = 0;
@@ -111,7 +111,7 @@ public class SimpleIndex implements SpatialIndex {
           // would leave at least N entries.
           int maxDistanceCount = 1;
           int currentIndex = distances.size() - 1;
-          float maxDistance = distances.get(currentIndex);
+          double maxDistance = distances.get(currentIndex);
           while (currentIndex - 1 >= 0 && distances.get(currentIndex - 1) == maxDistance) {
             currentIndex--;
             maxDistanceCount++; 
@@ -128,9 +128,9 @@ public class SimpleIndex implements SpatialIndex {
   }
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, gnu.trove.TIntProcedure, int, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, gnu.trove.procedure.TIntProcedure, int, double)
    */
-  public void nearestN(Point p, final TIntProcedure v, int n, float furthestDistance) {
+  public void nearestN(Point p, final TIntProcedure v, int n, double furthestDistance) {
     TIntArrayList nearestList = nearestN(p, n, furthestDistance); 
     nearestList.forEach(new TIntProcedure() {
       public boolean execute(int id) {
@@ -143,14 +143,14 @@ public class SimpleIndex implements SpatialIndex {
   /**
    * Same as nearestN
    * 
-   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(Point, gnu.trove.TIntProcedure, int, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(Point, gnu.trove.procedure.TIntProcedure, int, double)
    */
-  public void nearestNUnsorted(Point p, final TIntProcedure v, int n, float furthestDistance) {
+  public void nearestNUnsorted(Point p, final TIntProcedure v, int n, double furthestDistance) {
     nearestN(p, v, n, furthestDistance);
   } 
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, gnu.trove.TIntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, gnu.trove.procedure.TIntProcedure)
    */
   public void intersects(Rectangle r, TIntProcedure v) {
     TIntObjectIterator<Rectangle> i = m_map.iterator();
@@ -165,7 +165,7 @@ public class SimpleIndex implements SpatialIndex {
   }
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, gnu.trove.TIntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, gnu.trove.procedure.TIntProcedure)
    */
   public void contains(Rectangle r, TIntProcedure v) {
    TIntObjectIterator<Rectangle> i = m_map.iterator();

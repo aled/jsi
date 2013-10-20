@@ -56,7 +56,7 @@ public class ListDecorator {
    * @return List of IDs of rectangles that are nearest
    *         to the passed rectangle, ordered by distance (nearest first).
    */
-  public List<Integer> nearest(Point p, float furthestDistance) {
+  public List<Integer> nearest(Point p, double furthestDistance) {
   	AddToListProcedure v = new AddToListProcedure();
     m_si.nearest(p, v, furthestDistance);	
     return v.getList();
@@ -73,7 +73,7 @@ public class ListDecorator {
    *         to the passed rectangle, ordered by distance (nearest first).
    *         If multiple rectangles have the same distance, order by ID.
    */
-  public List<Integer> nearestN(Point p, int maxCount, float furthestDistance) {
+  public List<Integer> nearestN(Point p, int maxCount, double furthestDistance) {
     AddToListProcedure v = new AddToListProcedure();
     m_si.nearestN(p, v, maxCount, furthestDistance); 
     return v.getList();

@@ -82,7 +82,7 @@ public interface SpatialIndex {
    * Use Float.POSITIVE_INFINITY to guarantee that the nearest rectangle is found,
    * no matter how far away, although this will slow down the algorithm.
    */
-  public void nearest(Point p, TIntProcedure v, float furthestDistance);
+  public void nearest(Point p, TIntProcedure v, double furthestDistance);
 
   /**
    * Finds the N nearest rectangles to the passed rectangle, and calls
@@ -95,7 +95,7 @@ public interface SpatialIndex {
    * @param p The point for which this method finds the
    * nearest neighbours.
    *
-   * @param v The IntfloatProcedure whose execute() method is is called
+   * @param v The IntdoubleProcedure whose execute() method is is called
    * for each nearest neighbour.
    *
    * @param n The desired number of rectangles to find (but note that
@@ -110,13 +110,13 @@ public interface SpatialIndex {
    * Use Float.POSITIVE_INFINITY to guarantee that the nearest rectangle is found,
    * no matter how far away, although this will slow down the algorithm.
    */
-  public void nearestN(Point p, TIntProcedure v, int n, float distance);
+  public void nearestN(Point p, TIntProcedure v, int n, double distance);
 
   /**
    * Same as nearestN, except the found rectangles are not returned
    * in sorted order. This will be faster, if sorting is not required
    */
-  public void nearestNUnsorted(Point p, TIntProcedure v, int n, float distance);
+  public void nearestNUnsorted(Point p, TIntProcedure v, int n, double distance);
 
   /**
    * Finds all rectangles that intersect the passed rectangle.

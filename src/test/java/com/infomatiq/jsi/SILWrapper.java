@@ -19,21 +19,15 @@
 package com.infomatiq.jsi;
 
 import gnu.trove.procedure.TIntProcedure;
-
-import java.util.Properties;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import sil.rtree.RTree;
-import sil.spatialindex.IData;
-import sil.spatialindex.INode;
-import sil.spatialindex.ISpatialIndex;
-import sil.spatialindex.IVisitor;
-import sil.spatialindex.Region;
+import sil.spatialindex.*;
 import sil.storagemanager.IStorageManager;
 import sil.storagemanager.MemoryStorageManager;
 import sil.storagemanager.PropertySet;
+
+import java.util.Properties;
 
 /**
  * Wrapper class for the Spatial Index Library (v0.43b) written by
@@ -72,7 +66,7 @@ public class SILWrapper implements SpatialIndex {
     int minNodeEntries = Integer.parseInt(props.getProperty("MinNodeEntries", "0"));
     int maxNodeEntries = Integer.parseInt(props.getProperty("MaxNodeEntries", "0"));
     
-    float fillFactor = (float) minNodeEntries / (float) maxNodeEntries;
+    double fillFactor = (double) minNodeEntries / (double) maxNodeEntries;
     
     // create a memory-based storage manager
     storageManager = new MemoryStorageManager();
@@ -101,18 +95,18 @@ public class SILWrapper implements SpatialIndex {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point p, gnu.trove.TIntProcedure ip, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point p, gnu.trove.procedure.TIntProcedure ip, double)
    */
-  public void nearest(Point p, TIntProcedure v, float furthestDistance) {
+  public void nearest(Point p, TIntProcedure v, double furthestDistance) {
     tree.nearestNeighborQuery(1, 
                               new sil.spatialindex.Point(new double[] {p.x, p.y}),  
                               new IntProcedureVisitor(v));
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, gnu.trove.TIntProcedure, int, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, gnu.trove.procedure.TIntProcedure, int, double)
    */
-  public void nearestN(Point p, TIntProcedure v, int n, float furthestDistance) {
+  public void nearestN(Point p, TIntProcedure v, int n, double furthestDistance) {
     tree.nearestNeighborQuery(n, 
                               new sil.spatialindex.Point(new double[] {p.x, p.y}),  
                               new IntProcedureVisitor(v));
@@ -121,15 +115,15 @@ public class SILWrapper implements SpatialIndex {
   /**
    * Same as nearestN
    * 
-   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(Point, gnu.trove.TIntProcedure, int, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(Point, gnu.trove.procedure.TIntProcedure, int, double)
    */
-  public void nearestNUnsorted(Point p, TIntProcedure v, int n, float furthestDistance) {
+  public void nearestNUnsorted(Point p, TIntProcedure v, int n, double furthestDistance) {
     nearestN(p, v, n, furthestDistance);
   }
 
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, gnu.trove.TIntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, gnu.trove.procedure.TIntProcedure)
    */
   public void intersects(Rectangle r, TIntProcedure v) {
     Region region = new Region(new double[] {r.minX, r.minY}, new double[] {r.maxX, r.maxY});  
@@ -137,7 +131,7 @@ public class SILWrapper implements SpatialIndex {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, gnu.trove.TIntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, gnu.trove.procedure.TIntProcedure)
    */
   public void contains(Rectangle r, TIntProcedure v) {
     Region region = new Region(new double[] {r.minX, r.minY}, new double[] {r.maxX, r.maxY});

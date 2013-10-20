@@ -36,31 +36,31 @@ public class NullIndex implements SpatialIndex {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point, gnu.trove.TIntProcedure, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point, gnu.trove.procedure.TIntProcedure, double)
    */
-  public void nearest(Point p, TIntProcedure v, float distance) {
+  public void nearest(Point p, TIntProcedure v, double distance) {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, gnu.trove.TIntProcedure, int, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, gnu.trove.procedure.TIntProcedure, int, double)
    */
-  public void nearestN(Point p, TIntProcedure v, int n, float distance) {
+  public void nearestN(Point p, TIntProcedure v, int n, double distance) {
   }
  
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(Point, gnu.trove.TIntProcedure, int, float)
+   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(Point, gnu.trove.procedure.TIntProcedure, int, double)
    */
-  public void nearestNUnsorted(Point p, TIntProcedure v, int n, float distance) {
+  public void nearestNUnsorted(Point p, TIntProcedure v, int n, double distance) {
   }
   
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, gnu.trove.TIntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, gnu.trove.procedure.TIntProcedure)
    */
   public void intersects(Rectangle r, TIntProcedure ip) {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, gnu.trove.TIntProcedure)
+   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, gnu.trove.procedure.TIntProcedure)
    */
   public void contains(Rectangle r, TIntProcedure ip) {
   }

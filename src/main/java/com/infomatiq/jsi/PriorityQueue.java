@@ -18,14 +18,14 @@
 
 package com.infomatiq.jsi;
 
-import java.io.Serializable;
-
+import gnu.trove.list.array.TDoubleArrayList;
 import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.list.array.TFloatArrayList;
+
+import java.io.Serializable;
 
 /**
  * <p>
- * Priority Queue that stores values as ints and priorities as floats. Uses a
+ * Priority Queue that stores values as ints and priorities as doubles. Uses a
  * Heap to sort the priorities; the values are sorted "in step" with the
  * priorities.
  * </p>
@@ -74,7 +74,7 @@ public class PriorityQueue implements Serializable {
   public static final boolean SORT_ORDER_DESCENDING = false;
 
   private TIntArrayList values = null;
-  private TFloatArrayList priorities = null;
+  private TDoubleArrayList priorities = null;
   private boolean sortOrder = SORT_ORDER_ASCENDING;
 
   private static boolean INTERNAL_CONSISTENCY_CHECKING = false;
@@ -86,7 +86,7 @@ public class PriorityQueue implements Serializable {
   public PriorityQueue(boolean sortOrder, int initialCapacity) {
     this.sortOrder = sortOrder;
     values = new TIntArrayList(initialCapacity);
-    priorities = new TFloatArrayList(initialCapacity);
+    priorities = new TDoubleArrayList(initialCapacity);
   }
 
   /**
@@ -94,7 +94,7 @@ public class PriorityQueue implements Serializable {
    * @param p2
    * @return true if p1 has an earlier sort order than p2.
    */
-  private boolean sortsEarlierThan(float p1, float p2) {
+  private boolean sortsEarlierThan(double p1, double p2) {
     if (sortOrder == SORT_ORDER_ASCENDING) {
       return p1 < p2;
     }
@@ -103,21 +103,21 @@ public class PriorityQueue implements Serializable {
 
   // to insert a value, append it to the arrays, then
   // reheapify by promoting it to the correct place.
-  public void insert(int value, float priority) {
+  public void insert(int value, double priority) {
     values.add(value);
     priorities.add(priority);
 
     promote(values.size() - 1, value, priority);
   }
 
-  private void promote(int index, int value, float priority) {
+  private void promote(int index, int value, double priority) {
     // Consider the index to be a "hole"; i.e. don't swap priorities/values
     // when moving up the tree, simply copy the parent into the hole and
     // then consider the parent to be the hole.
     // Finally, copy the value/priority into the hole.
     while (index > 0) {
       int parentIndex = (index - 1) / 2;
-      float parentPriority = priorities.get(parentIndex);
+      double parentPriority = priorities.get(parentIndex);
 
       if (sortsEarlierThan(parentPriority, priority)) {
         break;
@@ -155,18 +155,18 @@ public class PriorityQueue implements Serializable {
     return values.get(0);
   }
 
-  public float getPriority() {
+  public double getPriority() {
     return priorities.get(0);
   }
 
-  private void demote(int index, int value, float priority) {
+  private void demote(int index, int value, double priority) {
     int childIndex = (index * 2) + 1; // left child
 
     while (childIndex < values.size()) {
-      float childPriority = priorities.get(childIndex);
+      double childPriority = priorities.get(childIndex);
 
       if (childIndex + 1 < values.size()) {
-        float rightPriority = priorities.get(childIndex + 1);
+        double rightPriority = priorities.get(childIndex + 1);
         if (sortsEarlierThan(rightPriority, childPriority)) {
           childPriority = rightPriority;
           childIndex++; // right child
@@ -198,7 +198,7 @@ public class PriorityQueue implements Serializable {
     // record the value/priority of the last entry
     int lastIndex = values.size() - 1;
     int tempValue = values.get(lastIndex);
-    float tempPriority = priorities.get(lastIndex);
+    double tempPriority = priorities.get(lastIndex);
 
     values.removeAt(lastIndex);
     priorities.removeAt(lastIndex);
@@ -233,11 +233,11 @@ public class PriorityQueue implements Serializable {
     int lastIndex = values.size() - 1;
 
     for (int i = 0; i < values.size() / 2; i++) {
-      float currentPriority = priorities.get(i);
+      double currentPriority = priorities.get(i);
 
       int leftIndex = (i * 2) + 1;
       if (leftIndex <= lastIndex) {
-        float leftPriority = priorities.get(leftIndex);
+        double leftPriority = priorities.get(leftIndex);
         if (sortsEarlierThan(leftPriority, currentPriority)) {
           System.err.println("Internal error in PriorityQueue");
         }
@@ -245,7 +245,7 @@ public class PriorityQueue implements Serializable {
 
       int rightIndex = (i * 2) + 2;
       if (rightIndex <= lastIndex) {
-        float rightPriority = priorities.get(rightIndex);
+        double rightPriority = priorities.get(rightIndex);
         if (sortsEarlierThan(rightPriority, currentPriority)) {
           System.err.println("Internal error in PriorityQueue");
         }
