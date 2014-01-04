@@ -25,7 +25,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -41,54 +40,18 @@ import junit.framework.TestCase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.infomatiq.jsi.Point;
-import com.infomatiq.jsi.Rectangle;
-import com.infomatiq.jsi.SpatialIndex;
-
 /**
  * Script
  */
 public class Script {
   
   private static final Logger log = LoggerFactory.getLogger(Script.class);
-    
-  static final int PERFORMANCE = 0;
+
   static final int REFERENCE_COMPARISON = 1;
   static final int REFERENCE_GENERATE = 2;
   
   private float canvasSize = 100000F;
-//  private TestCase testCase;
-//  
-//  public ScriptRunner(TestCase t) {
-//    testCase = t;
-//  }
-  
-  private void writePerformanceLog(String operation, String indexType, String testId, Properties p, int size, long timeMillis, int count) { 
-    File f = new File("target/test-classes/performance-log-" + operation);
-    f.getParentFile().mkdirs();
-    
-    try {
-      boolean created = f.createNewFile();
-      PrintWriter pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(f)));
-      
-      if (created)
-        pw.println("IndexType,TestId,MinNodeEntries,MaxNodeEntries,TreeVariant,TreeSize,AddCount,AverageAddTime");
-            
-      pw.println(
-        indexType + "," + testId + "," + 
-        p.getProperty("MinNodeEntries") + "," + 
-        p.getProperty("MaxNodeEntries") + "," + 
-        p.getProperty("TreeVariant") + "," +
-        size + "," + 
-        count + "," + 
-        (timeMillis/1000.0) / (float) count);
-      pw.flush();
-      pw.close();
-    } catch (Throwable t) {
-      log.error("Could not write to performance log", t);
-    }    
-  }
-  
+
   private void writeOutput(String outputLine, PrintWriter outputFile, LineNumberReader referenceFile) {
    try {
       outputFile.println(outputLine);
@@ -132,23 +95,16 @@ public class Script {
    * @return Time taken to execute method, in milliseconds.
    */
   public long run(String indexType, Properties indexProperties, String testId, int testType) {
-    if (log.isDebugEnabled()) {
-      log.debug("runScript: " + indexType + ", testId=" + testId + 
-               ", minEntries=" + indexProperties.getProperty("MinNodeEntries") + 
-               ", maxEntries=" + indexProperties.getProperty("MaxNodeEntries") + 
-               ", treeVariant=" + indexProperties.getProperty("TreeVariant"));
+    if (log.isInfoEnabled()) {
+      log.info("runScript: " + indexType + ", testId=" + testId +
+              ", minEntries=" + indexProperties.getProperty("MinNodeEntries") +
+              ", maxEntries=" + indexProperties.getProperty("MaxNodeEntries") +
+              ", treeVariant=" + indexProperties.getProperty("TreeVariant"));
     }
     
     SpatialIndex si = SpatialIndexFactory.newInstance(indexType, indexProperties);
     
-    ListDecorator ld = null;
-    
-    // Don't sort the results if we are testing the performance
-    if (testType == PERFORMANCE) {
-      ld = new ListDecorator(si); 
-    } else {
-      ld = new SortedListDecorator(si);
-    } 
+    ListDecorator ld = new SortedListDecorator(si);
     
     Random random = new Random();
     DecimalFormat df = new DecimalFormat();
@@ -195,28 +151,27 @@ public class Script {
     // open actual results file for writing. Filename is of form
     // test-testId-indexType-revision-datetime, unless generating reference results.
     PrintWriter outputFile = null;
-    if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-      String outputFilename = null;
-      if (testType == REFERENCE_COMPARISON) {
-        outputFilename = strTestResultsRoot + "-" + si.getVersion() + 
-          "-" + new SimpleDateFormat("yyMMddHHmmss").format(new Date());
-      } else {
-        outputFilename = strTestResultsRoot + "-reference";
-        if (new File(outputFilename).exists()) {
+
+    String outputFilename = null;
+    if (testType == REFERENCE_COMPARISON) {
+      outputFilename = strTestResultsRoot + "-" + si.getVersion() +
+      	"-" + new SimpleDateFormat("yyMMddHHmmss").format(new Date());
+    } else {
+      outputFilename = strTestResultsRoot + "-reference";
+      if (new File(outputFilename).exists()) {
           log.info("Reusing existing reference file: " + outputFilename);
           return 0;
-        }
-      }     
+      }
+    }
        
-      new File(outputFilename).getParentFile().mkdirs();
+    new File(outputFilename).getParentFile().mkdirs();
       
-      try { 
-        outputFile = new PrintWriter(new FileOutputStream(outputFilename));     
-      } catch (FileNotFoundException e) {
-        log.error("Unable to open test output results file " + outputFilename);
-        TestCase.assertTrue("Unable to open test output results file " + outputFilename, false);
-        return -1;
-      } 
+    try {
+      outputFile = new PrintWriter(new FileOutputStream(outputFilename));
+    } catch (FileNotFoundException e) {
+      log.error("Unable to open test output results file " + outputFilename);
+      TestCase.assertTrue("Unable to open test output results file " + outputFilename, false);
+      return -1;
     }
     
     long scriptStartTime = System.currentTimeMillis();
@@ -230,30 +185,22 @@ public class Script {
           continue; 
         }
         
-        StringBuffer outputBuffer = null;
-        
-        if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-          outputBuffer = new StringBuffer(inputLine);
-        }
+        StringBuffer outputBuffer = new StringBuffer(inputLine);
             
         StringTokenizer st = new StringTokenizer(inputLine);
         while (st.hasMoreTokens()) {
-         String operation = st.nextToken().toUpperCase();
+          String operation = st.nextToken().toUpperCase();
           if (operation.equals("DISTANCEQUANTIZER")) {
             quantizer = Integer.parseInt(st.nextToken());
           } else if (operation.equals("RANDOMIZE")) {
             random.setSeed(Integer.parseInt(st.nextToken()));
-            if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-              writeOutput(outputBuffer.toString() + " : OK", outputFile, referenceFile);
-            }
+            writeOutput(outputBuffer.toString() + " : OK", outputFile, referenceFile);
           } else if (operation.equals("ADDRANDOM")) {
             int count = Integer.parseInt(st.nextToken());
             int startId = Integer.parseInt(st.nextToken());
             float rectangleSize = Float.parseFloat(st.nextToken());
             
-            if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-              writeOutput(outputBuffer.toString(), outputFile, referenceFile);
-            }
+            writeOutput(outputBuffer.toString(), outputFile, referenceFile);
             
             long startTime = System.currentTimeMillis();
                
@@ -261,27 +208,19 @@ public class Script {
               Rectangle r = getRandomRectangle(random, rectangleSize, canvasSize, quantizer);
               si.add(r, id);
             
-              if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-                String outputLine = "  " + id + " " + r.toString() + " : OK";
-                writeOutput(outputLine, outputFile, referenceFile);
-              }
+              String outputLine = "  " + id + " " + r.toString() + " : OK";
+              writeOutput(outputLine, outputFile, referenceFile);
             }
             long time = System.currentTimeMillis() - startTime;
             if (log.isDebugEnabled()) {
               log.debug("Added " + count + " entries in " + time +  "ms (" + time / (float) count + " ms per add)");
             }
-            if (testType == PERFORMANCE) {
-               writePerformanceLog("add", indexType, testId, indexProperties, si.size(), time, count);
-            }
           } else if (operation.equals("DELETERANDOM")) {
             int count = Integer.parseInt(st.nextToken());
             int startId = Integer.parseInt(st.nextToken());
             float rectangleSize = Float.parseFloat(st.nextToken());
-            
-            if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-              writeOutput(outputBuffer.toString(), outputFile, referenceFile);
-            }
-            
+            writeOutput(outputBuffer.toString(), outputFile, referenceFile);
+
             long startTime = System.currentTimeMillis();
             
             int successfulDeleteCount = 0;   
@@ -293,26 +232,19 @@ public class Script {
                 successfulDeleteCount++;
               }
               
-              if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-                String outputLine = "  " + id + " " + r.toString() + " : " + deleted;
-                writeOutput(outputLine, outputFile, referenceFile);
-              }
+              String outputLine = "  " + id + " " + r.toString() + " : " + deleted;
+              writeOutput(outputLine, outputFile, referenceFile);
             }
             long time = System.currentTimeMillis() - startTime;
             if (log.isDebugEnabled()) {
               log.debug("Attempted to delete " + count + " entries (" + successfulDeleteCount + " successful) in " + time +  "ms (" + time / (float) count + " ms per delete)");
             }
-            if (testType == PERFORMANCE) {
-              writePerformanceLog("delete", indexType, testId, indexProperties, si.size(), time, count);              
-            }
           } 
           else if (operation.equals("NEARESTRANDOM")) {
             int queryCount = Integer.parseInt(st.nextToken());
             
-            if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-              writeOutput(outputBuffer.toString(), outputFile, referenceFile);
-            }
-  
+            writeOutput(outputBuffer.toString(), outputFile, referenceFile);
+
             long startTime = System.currentTimeMillis();
             int totalEntriesReturned = 0;
             
@@ -323,34 +255,27 @@ public class Script {
               List<Integer> l = ld.nearest(new Point(x, y), Float.POSITIVE_INFINITY);
               totalEntriesReturned += l.size();
               
-              if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-                StringBuffer tempBuffer = new StringBuffer("  " + id + " " + 
+              StringBuffer tempBuffer = new StringBuffer("  " + id + " " +
                                                      df.format(x) + " " +
                                                      df.format(y) + " : OK");
   
-                Iterator<Integer> i = l.iterator();
-                while (i.hasNext()) {
-                  tempBuffer.append(' ');
-                  tempBuffer.append(i.next()).toString();
-                }
-                writeOutput(tempBuffer.toString(), outputFile, referenceFile);
+              Iterator<Integer> i = l.iterator();
+              while (i.hasNext()) {
+                tempBuffer.append(' ');
+                tempBuffer.append(i.next()).toString();
               }
+              writeOutput(tempBuffer.toString(), outputFile, referenceFile);
             } 
             long time = System.currentTimeMillis() - startTime;
-            if (log.isDebugEnabled()) {
-              log.debug("NearestQueried " + queryCount + " times in " + time +  "ms. Per query: " + time / (float) queryCount + " ms, " + (totalEntriesReturned / (float) queryCount) + " entries");
-            }
-            if (testType == PERFORMANCE) {
-              writePerformanceLog("nearest", indexType, testId, indexProperties, si.size(), time, queryCount);              
+            if (log.isInfoEnabled()) {
+              log.info("NearestQueried " + queryCount + " times in " + time + "ms. Per query: " + time / (float) queryCount + " ms, " + (totalEntriesReturned / (float) queryCount) + " entries");
             }
           } else if (operation.equals("NEARESTNRANDOM")) {
             int queryCount = Integer.parseInt(st.nextToken());
             int n = Integer.parseInt(st.nextToken());
             
-            if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-              writeOutput(outputBuffer.toString(), outputFile, referenceFile);
-            }
-  
+            writeOutput(outputBuffer.toString(), outputFile, referenceFile);
+
             long startTime = System.currentTimeMillis();
             int totalEntriesReturned = 0;
             
@@ -362,35 +287,28 @@ public class Script {
               
               totalEntriesReturned += l.size();
               
-              if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-                StringBuffer tempBuffer = new StringBuffer("  " + id + " " + 
+              StringBuffer tempBuffer = new StringBuffer("  " + id + " " +
                                                      df.format(x) + " " +
                                                      df.format(y) + " : OK");
   
-                Iterator<Integer> i = l.iterator();
-                while (i.hasNext()) {
-                  tempBuffer.append(' ');
-                  tempBuffer.append(i.next()).toString();
-                }
-              
-                writeOutput(tempBuffer.toString(), outputFile, referenceFile);
+              Iterator<Integer> i = l.iterator();
+              while (i.hasNext()) {
+                tempBuffer.append(' ');
+                tempBuffer.append(i.next()).toString();
               }
+
+              writeOutput(tempBuffer.toString(), outputFile, referenceFile);
             } 
             long time = System.currentTimeMillis() - startTime;
-            if (log.isDebugEnabled()) {
-              log.debug("NearestNQueried " + queryCount + " times in " + time +  "ms. Per query: " + time / (float) queryCount + " ms, " + (totalEntriesReturned / (float) queryCount) + " entries");
-            }
-            if (testType == PERFORMANCE) {
-              writePerformanceLog("nearestN", indexType, testId, indexProperties, si.size(), time, queryCount);              
+            if (log.isInfoEnabled()) {
+              log.info("NearestNQueried " + queryCount + " times in " + time + "ms. Per query: " + time / (float) queryCount + " ms, " + (totalEntriesReturned / (float) queryCount) + " entries");
             }
           } else if (operation.equals("INTERSECTRANDOM")) {
             int queryCount = Integer.parseInt(st.nextToken());
             float rectangleSize = Float.parseFloat(st.nextToken());
             
-            if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-              writeOutput(outputBuffer.toString(), outputFile, referenceFile);
-            }
-            
+            writeOutput(outputBuffer.toString(), outputFile, referenceFile);
+
             long startTime = System.currentTimeMillis();
             int totalEntriesReturned = 0;
             
@@ -399,33 +317,26 @@ public class Script {
               List<Integer> l = ld.intersects(r);
               totalEntriesReturned += l.size();
               
-              if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-                Iterator<Integer> i = l.iterator();
-                StringBuffer tempBuffer = new StringBuffer("  " + id + " " + r.toString() + " : OK");
-  
-                while (i.hasNext()) {
-                  tempBuffer.append(' ');
-                  tempBuffer.append(i.next()).toString();
-                }
-                writeOutput(tempBuffer.toString(), outputFile, referenceFile);
+              Iterator<Integer> i = l.iterator();
+              StringBuffer tempBuffer = new StringBuffer("  " + id + " " + r.toString() + " : OK");
+
+              while (i.hasNext()) {
+                tempBuffer.append(' ');
+                tempBuffer.append(i.next()).toString();
               }
+              writeOutput(tempBuffer.toString(), outputFile, referenceFile);
             }
             long time = System.currentTimeMillis() - startTime;
-            if (log.isDebugEnabled()) {
-              log.debug("IntersectQueried " + queryCount + " times in " + time +  "ms. Per query: " + time / (float) queryCount + " ms, " + (totalEntriesReturned / (float) queryCount) + " entries");
-            }
-            if (testType == PERFORMANCE) {
-              writePerformanceLog("intersect", indexType, testId, indexProperties, si.size(), time, queryCount);              
+            if (log.isInfoEnabled()) {
+              log.info("IntersectQueried " + queryCount + " times in " + time + "ms. Per query: " + time / (float) queryCount + " ms, " + (totalEntriesReturned / (float) queryCount) + " entries");
             }
           } 
           else if (operation.equals("CONTAINSRANDOM")) {
             int queryCount = Integer.parseInt(st.nextToken());
             float rectangleSize = Float.parseFloat(st.nextToken());
             
-            if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-              writeOutput(outputBuffer.toString(), outputFile, referenceFile);
-            }
-            
+            writeOutput(outputBuffer.toString(), outputFile, referenceFile);
+
             long startTime = System.currentTimeMillis();
             int totalEntriesReturned = 0;
             
@@ -434,23 +345,18 @@ public class Script {
               List<Integer> l = ld.contains(r);
               totalEntriesReturned += l.size();
               
-              if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-                Iterator<Integer> i = l.iterator();
-                StringBuffer tempBuffer = new StringBuffer("  " + id + " " + r.toString() + " : OK");
-  
-                while (i.hasNext()) {
-                  tempBuffer.append(' ');
-                  tempBuffer.append((Integer)i.next()).toString();
-                }
-                writeOutput(tempBuffer.toString(), outputFile, referenceFile);
+              Iterator<Integer> i = l.iterator();
+              StringBuffer tempBuffer = new StringBuffer("  " + id + " " + r.toString() + " : OK");
+
+              while (i.hasNext()) {
+                tempBuffer.append(' ');
+                tempBuffer.append((Integer)i.next()).toString();
               }
+              writeOutput(tempBuffer.toString(), outputFile, referenceFile);
             }
             long time = System.currentTimeMillis() - startTime;
-            if (log.isDebugEnabled()) {
-              log.debug("ContainsQueried " + queryCount + " times in " + time +  "ms. Per query: " + time / (float) queryCount + " ms, " + (totalEntriesReturned / (float) queryCount) + " entries");
-            }
-            if (testType == PERFORMANCE) {
-              writePerformanceLog("contains", indexType, testId, indexProperties, si.size(), time, queryCount);              
+            if (log.isInfoEnabled()) {
+              log.info("ContainsQueried " + queryCount + " times in " + time + "ms. Per query: " + time / (float) queryCount + " ms, " + (totalEntriesReturned / (float) queryCount) + " entries");
             }
           } 
           else if (operation.equals("ADD")) {
@@ -462,10 +368,8 @@ public class Script {
              
             si.add(new Rectangle(x1, y1, x2, y2), id);
              
-            if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-              outputBuffer.append(" : OK");
-              writeOutput(outputBuffer.toString(), outputFile, referenceFile);
-            }
+            outputBuffer.append(" : OK");
+            writeOutput(outputBuffer.toString(), outputFile, referenceFile);
           } 
           else if (operation.equals("DELETE")) {
             int id = Integer.parseInt(st.nextToken());
@@ -476,14 +380,12 @@ public class Script {
              
             boolean deleted = si.delete(new Rectangle(x1, y1, x2, y2), id);
              
-            if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-              if (deleted) {
-                outputBuffer.append(" : OK");
-              } else {
-                outputBuffer.append(" : Not found");
-              }
-              writeOutput(outputBuffer.toString(), outputFile, referenceFile);
+            if (deleted) {
+              outputBuffer.append(" : OK");
+            } else {
+              outputBuffer.append(" : Not found");
             }
+            writeOutput(outputBuffer.toString(), outputFile, referenceFile);
           } 
           else if (operation.equals("NEAREST")) {
             float x = Float.parseFloat(st.nextToken());
@@ -491,16 +393,14 @@ public class Script {
              
             List<Integer> l = ld.nearest(new Point(x, y), Float.POSITIVE_INFINITY);
             
-            if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-              outputBuffer.append(" : OK");
-             
-              Iterator<Integer> i = l.iterator();
-              while (i.hasNext()) {
-                outputBuffer.append(" ");
-                outputBuffer.append((Integer)i.next()).toString();
-              }
-              writeOutput(outputBuffer.toString(), outputFile, referenceFile);
+            outputBuffer.append(" : OK");
+
+            Iterator<Integer> i = l.iterator();
+            while (i.hasNext()) {
+              outputBuffer.append(" ");
+              outputBuffer.append((Integer)i.next()).toString();
             }
+            writeOutput(outputBuffer.toString(), outputFile, referenceFile);
           } 
           else if (operation.equals("INTERSECT")) {
             float x1 = Float.parseFloat(st.nextToken());
@@ -510,16 +410,14 @@ public class Script {
             
             List<Integer> l = ld.intersects(new Rectangle(x1, y1, x2, y2));
             
-            if (testType == REFERENCE_COMPARISON || testType == REFERENCE_GENERATE) {
-              outputBuffer.append(" : OK");
+            outputBuffer.append(" : OK");
              
-              Iterator<Integer> i = l.iterator();
-              while (i.hasNext()) {
-                outputBuffer.append(" ");
-                outputBuffer.append(i.next()).toString();
-              }
-              writeOutput(outputBuffer.toString(), outputFile, referenceFile);
+            Iterator<Integer> i = l.iterator();
+            while (i.hasNext()) {
+              outputBuffer.append(" ");
+              outputBuffer.append(i.next()).toString();
             }
+            writeOutput(outputBuffer.toString(), outputFile, referenceFile);
           }
         } // for each token on the current input line
       } // for each input line

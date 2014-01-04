@@ -1,6 +1,8 @@
 //   PerformanceTest.java
 //   Java Spatial Index Library
 //   Copyright (C) 2002-2005 Infomatiq Limited.
+//   Copyright (C) 2013 Aled Morris <aled@users.sourceforge.net>
+//
 //  
 //  This library is free software; you can redistribute it and/or
 //  modify it under the terms of the GNU Lesser General Public
@@ -19,9 +21,12 @@
 package com.infomatiq.jsi;
 
 import java.util.Properties;
+import java.util.Random;
 
-import junit.framework.TestCase;
+import com.infomatiq.jsi.rtree.RTree;
+import gnu.trove.procedure.TIntProcedure;
 
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,116 +35,113 @@ import org.slf4j.LoggerFactory;
  *  
  * Generates results used for comparing the performance of the Java Spatial 
  * Index library against alternative implementations.
+ *
+ * The idea is for the raw data to be imported into a database, and results
+ * extracted from that.
+ *
+ * This test requires 1024M memory (i.e. use -Xmx1024M)
  */
-public class PerformanceTest extends TestCase {
+public class PerformanceTest {
 
   private static final Logger log = LoggerFactory.getLogger(PerformanceTest.class);
-  private Script script = new Script();
-  
-  public PerformanceTest(String s) {
-    super(s);
-  }
-  
-  // Tests add, intersect, nearest, nearestn, contains.
-  // Can optimize for add performance, memory efficiency, or query performance.
-  //
-  public void testQueryPerformance() {
-    
-    // Test 1: add performance. 
-    // To acheive maximum add performance, it is necessary to minimize the number of
-    // node splits. Therefore set the MinNodeEntries to 1.
-    // do each test 3 times to see if there is any variance due to hotspot VM (or something else).
-    Properties p = new Properties();
-    
-    p.setProperty("MinNodeEntries", "1");
-    p.setProperty("MaxNodeEntries", "10");
-    p.setProperty("TreeVariant", "Linear");
-  
-    script.run("rtree.RTree", p, "allqueries-10000", Script.PERFORMANCE);
-    script.run("rtree.RTree", p, "allqueries-10000", Script.PERFORMANCE);
-    script.run("rtree.RTree", p, "allqueries-10000", Script.PERFORMANCE);
-    
-//    script.run("test.RTreeWrapper", p, "allqueries-10000", Script.PERFORMANCE);  
-//    script.run("test.RTreeWrapper", p, "allqueries-10000", Script.PERFORMANCE);  
-//    script.run("test.RTreeWrapper", p, "allqueries-10000", Script.PERFORMANCE);  
-//    
-//    script.run("SILWrapper",   p, "allqueries-10000", Script.PERFORMANCE);
-//    script.run("SILWrapper",   p, "allqueries-10000", Script.PERFORMANCE);
-//    script.run("SILWrapper",   p, "allqueries-10000", Script.PERFORMANCE);
-//    
-//    p.setProperty("TreeVariant", "Quadratic");
-//    script.run("SILWrapper",   p, "allqueries-10000", Script.PERFORMANCE);
-//    script.run("SILWrapper",   p, "allqueries-10000", Script.PERFORMANCE);
-//    script.run("SILWrapper",   p, "allqueries-10000", Script.PERFORMANCE);
-//    
-//    p.setProperty("TreeVariant", "Rstar");
-//    script.run("SILWrapper",   p, "allqueries-10000", Script.PERFORMANCE);
-//    script.run("SILWrapper",   p, "allqueries-10000", Script.PERFORMANCE);
-//    script.run("SILWrapper",   p, "allqueries-10000", Script.PERFORMANCE);
+  private SpatialIndex si;
+  private Random r = new Random(0);
+
+  private float randomFloat(float min, float max) {
+    return (r.nextFloat() * (max - min)) + min;
   }
 
-  public void testNearestN() {
-    Properties p = new Properties();
-    p.setProperty("MinNodeEntries", "5");
-    p.setProperty("MaxNodeEntries", "10");
-     
-    script.run("rtree.RTree",       p, "nearestN-100", Script.PERFORMANCE);
-    script.run("rtree.RTree",       p, "nearestN-1000", Script.PERFORMANCE);
-    script.run("rtree.RTree",       p, "nearestN-10000", Script.PERFORMANCE);    
+  protected Point randomPoint() {
+    return new Point(randomFloat(0, 100), randomFloat(0, 100));
   }
-  
-  /**
-   * Tests performance of all the RTree variants for add() and intersect(),
-   * for up to 10,000,000 entries
-   */
-  public void testAllFunctions() {
-    log.debug("testAllFunctions()");
-    
+
+  private Rectangle randomRectangle(float size) {
+    float x = randomFloat(0, 100);
+    float y = randomFloat(0, 100);
+    return new Rectangle(x, y, x + randomFloat(0, size), y + randomFloat(0, size));
+  }
+
+  abstract class Operation {
+    private final int count[] = new int[1];
+    private String description;
+
+    public Operation(String description) {
+      this.description = description;
+    }
+
+    protected TIntProcedure countProc = new TIntProcedure() {
+      public boolean execute(int value) {
+        count[0]++;
+        return true;
+      }
+    };
+
+    public int callbackCount() {
+      return count[0];
+    }
+
+    public String getDescription() {
+      return description;
+    }
+
+    abstract void execute(SpatialIndex si);
+  }
+
+  private void benchmark(Operation o, int repetitions) {
+    long duration = 0;
+    long startTime = System.nanoTime();
+    for (int j = 0; j < repetitions; j++) o.execute(si);
+    duration += (System.nanoTime() - startTime);
+
+    log.info(o.getDescription() + ", " +
+              "avg callbacks = " +  ((float)o.callbackCount() / repetitions) + ", " +
+              "avg time = " + (duration / repetitions) + " ns");
+  }
+
+  @Test
+  public void benchmark_1() {
+    r = new Random(0);
     Properties p = new Properties();
-       
-    // SimpleIndex and NullIndex do not use Min/MaxNodeEntries, so do them first.
-    script.run("SimpleIndex", p, "allfunctions-100", Script.PERFORMANCE);
-    script.run("SimpleIndex", p, "allfunctions-1000", Script.PERFORMANCE);
-    script.run("SimpleIndex", p, "allfunctions-10000", Script.PERFORMANCE);
-    // Only go up to 10000 for simple index, as it takes too int
-    
-    p.setProperty("TreeVariant", "null");
-    script.run("NullIndex",   p, "allfunctions-100", Script.PERFORMANCE);
-    script.run("NullIndex",   p, "allfunctions-1000", Script.PERFORMANCE);
-    script.run("NullIndex",   p, "allfunctions-10000", Script.PERFORMANCE);
-    //script.run("NullIndex",   p, "allfunctions-100000", Script.PERFORMANCE);
-    
-    p.setProperty("MinNodeEntries", "5");
-    p.setProperty("MaxNodeEntries", "20");  // reasonable values?
-    
-    p.setProperty("TreeVariant", "Linear");
-    script.run("RTreeWrapper", p, "allfunctions-100", Script.PERFORMANCE);
-    script.run("RTreeWrapper", p, "allfunctions-1000", Script.PERFORMANCE);
-    script.run("RTreeWrapper", p, "allfunctions-10000", Script.PERFORMANCE);
-    //script.run("RTreeWrapper", p, "allfunctions-100000", Script.PERFORMANCE);
-      
-    p.setProperty("TreeVariant", "Linear");
-    script.run("rtree.RTree",       p, "allfunctions-100", Script.PERFORMANCE);
-    script.run("rtree.RTree",       p, "allfunctions-1000", Script.PERFORMANCE);
-    script.run("rtree.RTree",       p, "allfunctions-10000", Script.PERFORMANCE);
-    //script.run("rtree.RTree",       p, "allfunctions-100000", Script.PERFORMANCE);
-      
-    p.setProperty("TreeVariant", "Linear");
-    script.run("SILWrapper",   p, "allfunctions-100", Script.PERFORMANCE);
-    script.run("SILWrapper",   p, "allfunctions-1000", Script.PERFORMANCE);
-    script.run("SILWrapper",   p, "allfunctions-10000", Script.PERFORMANCE);
-    //script.run("SILWrapper",   p, "allfunctions-100000", Script.PERFORMANCE);
-      
-    p.setProperty("TreeVariant", "Quadratic");
-    script.run("SILWrapper",   p, "allfunctions-100", Script.PERFORMANCE);
-    script.run("SILWrapper",   p, "allfunctions-1000", Script.PERFORMANCE);
-    script.run("SILWrapper",   p, "allfunctions-10000", Script.PERFORMANCE);
-    //script.run("SILWrapper",   p, "allfunctions-100000", Script.PERFORMANCE);
-      
-    p.setProperty("TreeVariant", "Rstar");
-    script.run("SILWrapper",   p, "allfunctions-100", Script.PERFORMANCE);
-    script.run("SILWrapper",   p, "allfunctions-1000", Script.PERFORMANCE);
-    script.run("SILWrapper",   p, "allfunctions-10000", Script.PERFORMANCE);
-    //script.run("SILWrapper",   p, "allfunctions-100000", Script.PERFORMANCE);
+    p.setProperty("MinNodeEntries", "20");
+    p.setProperty("MaxNodeEntries", "50");
+    si = new RTree();
+    si.init(p);
+
+    final int rectangleCount = 1000000;
+    final Rectangle[] rects = new Rectangle[rectangleCount];
+    for (int i = 0; i < rectangleCount; i++) {
+      rects[i] = randomRectangle(0.01f);
+    }
+
+    long duration;
+    long startTime;
+
+    for (int j = 0; j < 5; j++) {
+      duration = 0;
+      startTime = System.nanoTime();
+      for (int i = 0; i < rectangleCount; i++) {
+        si.add(rects[i], i);
+      }
+      duration += (System.nanoTime() - startTime);
+      log.info("add " + rectangleCount + " avg tme = " + (duration / rectangleCount) + " ns");
+
+      if (j == 4) break; // don't do the delete the last time
+
+      duration = 0;
+      startTime = System.nanoTime();
+      for (int i = 0; i < rectangleCount; i++) {
+        si.delete(rects[i], i);
+      }
+      duration += (System.nanoTime() - startTime);
+      log.info("delete " + rectangleCount + " avg tme = " + (duration / rectangleCount) + " ns");
+    }
+
+    for (int i = 0; i < 100; i++) {
+      benchmark(new Operation("nearest") {void execute(SpatialIndex si) {si.nearest(randomPoint(), countProc, 0.1f);}}, 100);
+      benchmark(new Operation("nearestNUnsorted") {void execute(SpatialIndex si) {si.nearestNUnsorted(randomPoint(), countProc, 10, 0.16f);}}, 100);
+      benchmark(new Operation("nearestN") {void execute(SpatialIndex si) {si.nearestN(randomPoint(), countProc, 10, 0.16f);}}, 100);
+      benchmark(new Operation("intersects") {void execute(SpatialIndex si) {si.intersects(randomRectangle(0.6f), countProc);}}, 100);
+      benchmark(new Operation("contains") {void execute(SpatialIndex si) {si.contains(randomRectangle(0.65f), countProc);}}, 100);
+    }
   }
 }
