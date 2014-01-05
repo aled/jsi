@@ -22,6 +22,9 @@ package com.infomatiq.jsi;
 
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import com.infomatiq.jsi.rtree.RTree;
 import gnu.trove.procedure.TIntProcedure;
@@ -45,28 +48,29 @@ public class PerformanceTest {
 
   private static final Logger log = LoggerFactory.getLogger(PerformanceTest.class);
   private SpatialIndex si;
-  private Random r = new Random(0);
 
-  private float randomFloat(float min, float max) {
+  private float randomFloat(Random r, float min, float max) {
     return (r.nextFloat() * (max - min)) + min;
   }
 
-  protected Point randomPoint() {
-    return new Point(randomFloat(0, 100), randomFloat(0, 100));
+  protected Point randomPoint(Random r) {
+    return new Point(randomFloat(r, 0, 100), randomFloat(r, 0, 100));
   }
 
-  private Rectangle randomRectangle(float size) {
-    float x = randomFloat(0, 100);
-    float y = randomFloat(0, 100);
-    return new Rectangle(x, y, x + randomFloat(0, size), y + randomFloat(0, size));
+  private Rectangle randomRectangle(Random r, float size) {
+    float x = randomFloat(r, 0, 100);
+    float y = randomFloat(r, 0, 100);
+    return new Rectangle(x, y, x + randomFloat(r, 0, size), y + randomFloat(r, 0, size));
   }
 
   abstract class Operation {
     private final int count[] = new int[1];
     private String description;
+    public Random r;
 
-    public Operation(String description) {
+    public Operation(String description, Random r) {
       this.description = description;
+      this.r = r;
     }
 
     protected TIntProcedure countProc = new TIntProcedure() {
@@ -84,23 +88,26 @@ public class PerformanceTest {
       return description;
     }
 
-    abstract void execute(SpatialIndex si);
+    abstract void execute(SpatialIndex si, Random r);
   }
 
   private void benchmark(Operation o, int repetitions) {
     long duration = 0;
     long startTime = System.nanoTime();
-    for (int j = 0; j < repetitions; j++) o.execute(si);
+    for (int j = 0; j < repetitions; j++) o.execute(si, o.r);
     duration += (System.nanoTime() - startTime);
 
     log.info(o.getDescription() + ", " +
-              "avg callbacks = " +  ((float)o.callbackCount() / repetitions) + ", " +
-              "avg time = " + (duration / repetitions) + " ns");
+            "avg callbacks = " + ((float) o.callbackCount() / repetitions) + ", " +
+            "avg time = " + (duration / repetitions) + " ns");
   }
 
+  /**
+   * First attempt at a benchmark
+   */
   @Test
   public void benchmark_1() {
-    r = new Random(0);
+    Random rand  = new Random(0);
     Properties p = new Properties();
     p.setProperty("MinNodeEntries", "20");
     p.setProperty("MaxNodeEntries", "50");
@@ -110,7 +117,7 @@ public class PerformanceTest {
     final int rectangleCount = 1000000;
     final Rectangle[] rects = new Rectangle[rectangleCount];
     for (int i = 0; i < rectangleCount; i++) {
-      rects[i] = randomRectangle(0.01f);
+      rects[i] = randomRectangle(rand, 0.01f);
     }
 
     long duration;
@@ -125,7 +132,7 @@ public class PerformanceTest {
       duration += (System.nanoTime() - startTime);
       log.info("add " + rectangleCount + " avg tme = " + (duration / rectangleCount) + " ns");
 
-      if (j == 4) break; // don't do the delete the last time
+      if (j == 4) break; // don't do the delete on the last iteration
 
       duration = 0;
       startTime = System.nanoTime();
@@ -136,12 +143,19 @@ public class PerformanceTest {
       log.info("delete " + rectangleCount + " avg tme = " + (duration / rectangleCount) + " ns");
     }
 
-    for (int i = 0; i < 100; i++) {
-      benchmark(new Operation("nearest") {void execute(SpatialIndex si) {si.nearest(randomPoint(), countProc, 0.1f);}}, 100);
-      benchmark(new Operation("nearestNUnsorted") {void execute(SpatialIndex si) {si.nearestNUnsorted(randomPoint(), countProc, 10, 0.16f);}}, 100);
-      benchmark(new Operation("nearestN") {void execute(SpatialIndex si) {si.nearestN(randomPoint(), countProc, 10, 0.16f);}}, 100);
-      benchmark(new Operation("intersects") {void execute(SpatialIndex si) {si.intersects(randomRectangle(0.6f), countProc);}}, 100);
-      benchmark(new Operation("contains") {void execute(SpatialIndex si) {si.contains(randomRectangle(0.65f), countProc);}}, 100);
+    ExecutorService exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    try {
+      for (int i = 0; i < 100; i++) {
+        exec.submit(new Runnable() {public void run() {benchmark(new Operation("nearest", new Random(0)) {void execute(SpatialIndex si, Random r) {si.nearest(randomPoint(r), countProc, 0.1f);}}, 100); }});
+        exec.submit(new Runnable() {public void run() {benchmark(new Operation("nearestNUnsorted", new Random(0)) {void execute(SpatialIndex si, Random r) {si.nearestNUnsorted(randomPoint(r), countProc, 10, 0.16f);}}, 100); }});
+        exec.submit(new Runnable() {public void run() {benchmark(new Operation("nearestN", new Random(0)) {void execute(SpatialIndex si, Random r) {si.nearestN(randomPoint(r), countProc, 10, 0.16f);}}, 100); }});
+        exec.submit(new Runnable() {public void run() {benchmark(new Operation("intersects", new Random(0)) {void execute(SpatialIndex si, Random r) {si.intersects(randomRectangle(r, 0.6f), countProc);}}, 100); }});
+        exec.submit(new Runnable() {public void run() {benchmark(new Operation("contains", new Random(0)) {void execute(SpatialIndex si, Random r) {si.contains(randomRectangle(r, 0.65f), countProc);}}, 100); }});
+      }
+      try { exec.awaitTermination(1, TimeUnit.DAYS); } catch (Exception e) {}
+    }
+    finally {
+      exec.shutdown();
     }
   }
 }

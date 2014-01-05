@@ -96,19 +96,6 @@ public class RTree implements SpatialIndex, Serializable {
   // which can be reused.
   private TIntStack deletedNodeIds = new TIntArrayStack();
 
-  // List of nearest rectangles. Use a member variable to
-  // avoid recreating the object each time nearest() is called.
-  private TIntArrayList nearestIds = new TIntArrayList();
-  private TIntArrayList savedValues = new TIntArrayList();
-  private float savedPriority = 0;
-
-  // List of nearestN rectangles
-  private SortedList nearestNIds = new SortedList();
-
-  // List of nearestN rectanges, used in the alternative nearestN implementation.
-  private PriorityQueue distanceQueue =
-    new PriorityQueue(PriorityQueue.SORT_ORDER_ASCENDING);
-
   /**
    * Constructor. Use init() method to initialize parameters of the RTree.
    */
@@ -235,12 +222,12 @@ public class RTree implements SpatialIndex, Serializable {
    * @see com.infomatiq.jsi.SpatialIndex#delete(Rectangle, int)
    */
   public boolean delete(Rectangle r, int id) {
-   // FindLeaf algorithm inlined here. Note the "official" algorithm
-   // searches all overlapping entries. This seems inefficient to me,
-   // as an entry is only worth searching if it contains (NOT overlaps)
-   // the rectangle we are searching for.
-   //
-   // Also the algorithm has been changed so that it is not recursive.
+    // FindLeaf algorithm inlined here. Note the "official" algorithm
+    // searches all overlapping entries. This seems inefficient to me,
+    // as an entry is only worth searching if it contains (NOT overlaps)
+    // the rectangle we are searching for.
+    //
+    // Also the algorithm has been changed so that it is not recursive.
 
     // FL1 [Search subtrees] If root is not a leaf, check each entry
     // to determine if it contains r. For each entry found, invoke
@@ -325,26 +312,27 @@ public class RTree implements SpatialIndex, Serializable {
     Node rootNode = getNode(rootNodeId);
 
     float furthestDistanceSq = furthestDistance * furthestDistance;
-    nearest(p, rootNode, furthestDistanceSq);
+    TIntArrayList nearestIds = new TIntArrayList();
+    nearest(p, rootNode, furthestDistanceSq, nearestIds);
 
     nearestIds.forEach(v);
     nearestIds.reset();
   }
 
-  private void createNearestNDistanceQueue(Point p, int count, float furthestDistance) {
-    distanceQueue.reset();
-    distanceQueue.setSortOrder(PriorityQueue.SORT_ORDER_DESCENDING);
-
+  private void createNearestNDistanceQueue(Point p, int count, PriorityQueue distanceQueue, float furthestDistance) {
     //  return immediately if given an invalid "count" parameter
     if (count <= 0) {
       return;
     }
 
-    parents.clear();
+    TIntStack parents = new TIntArrayStack();
     parents.push(rootNodeId);
 
-    parentsEntry.clear();
+    TIntStack parentsEntry = new TIntArrayStack();
     parentsEntry.push(-1);
+
+    TIntArrayList savedValues = new TIntArrayList();
+    float savedPriority = 0;
 
     // TODO: possible shortcut here - could test for intersection with the
     //       MBR of the root node. If no intersection, return immediately.
@@ -436,7 +424,8 @@ public class RTree implements SpatialIndex, Serializable {
     //
     // Note that more than N items will be returned if items N and N+x have the
     // same priority.
-    createNearestNDistanceQueue(p, count, furthestDistance);
+    PriorityQueue distanceQueue = new PriorityQueue(PriorityQueue.SORT_ORDER_DESCENDING);
+    createNearestNDistanceQueue(p, count, distanceQueue, furthestDistance);
 
     while (distanceQueue.size() > 0) {
       v.execute(distanceQueue.getValue());
@@ -448,8 +437,8 @@ public class RTree implements SpatialIndex, Serializable {
    * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, TIntProcedure, int, float)
    */
   public void nearestN(Point p, TIntProcedure v, int count, float furthestDistance) {
-    createNearestNDistanceQueue(p, count, furthestDistance);
-
+    PriorityQueue distanceQueue = new PriorityQueue(PriorityQueue.SORT_ORDER_DESCENDING);
+    createNearestNDistanceQueue(p, count, distanceQueue, furthestDistance);
     distanceQueue.setSortOrder(PriorityQueue.SORT_ORDER_ASCENDING);
 
     while (distanceQueue.size() > 0) {
@@ -472,11 +461,10 @@ public class RTree implements SpatialIndex, Serializable {
   public void contains(Rectangle r, TIntProcedure v) {
     // find all rectangles in the tree that are contained by the passed rectangle
     // written to be non-recursive (should model other searches on this?)
-
-    parents.clear();
+    TIntStack parents = new TIntArrayStack();
     parents.push(rootNodeId);
 
-    parentsEntry.clear();
+    TIntStack parentsEntry = new TIntArrayStack();
     parentsEntry.push(-1);
 
     // TODO: possible shortcut here - could test for intersection with the
@@ -934,11 +922,10 @@ public class RTree implements SpatialIndex, Serializable {
    * however nearest() must store the entry Ids as it searches the tree,
    * in case a nearer entry is found.
    * Uses the member variable nearestIds to store the nearest
-   * entry IDs.
-   *
-   * TODO rewrite this to be non-recursive?
+   * entry IDs (it is an array, rather than a single value, in case
+   * multiple entries are equally near)
    */
-  private float nearest(Point p, Node n, float furthestDistanceSq) {
+  private float nearest(Point p, Node n, float furthestDistanceSq, TIntArrayList nearestIds) {
     for (int i = 0; i < n.entryCount; i++) {
       float tempDistanceSq = Rectangle.distanceSq(n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i], p.x, p.y);
       if (n.isLeaf()) { // for leaves, the distance is an actual nearest distance
@@ -953,7 +940,7 @@ public class RTree implements SpatialIndex, Serializable {
                // a rectangle nearer than actualNearest
          if (tempDistanceSq <= furthestDistanceSq) {
            // search the child node
-           furthestDistanceSq = nearest(p, getNode(n.ids[i]), furthestDistanceSq);
+           furthestDistanceSq = nearest(p, getNode(n.ids[i]), furthestDistanceSq, nearestIds);
          }
       }
     }
