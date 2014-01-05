@@ -434,9 +434,7 @@ public class RTree implements SpatialIndex, Serializable {
     //
     // Uses a priority queue as the underlying data structure.
     //
-    // The behaviour of this algorithm has been carefully designed to
-    // return exactly the same items as the the original version (nearestN_orig), in particular,
-    // more than N items will be returned if items N and N+x have the
+    // Note that more than N items will be returned if items N and N+x have the
     // same priority.
     createNearestNDistanceQueue(p, count, furthestDistance);
 
@@ -458,83 +456,6 @@ public class RTree implements SpatialIndex, Serializable {
       v.execute(distanceQueue.getValue());
       distanceQueue.pop();
     }
-  }
-
-  /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, TIntProcedure, int, float)
-   * @deprecated Use new NearestN or NearestNUnsorted instead.
-   *
-   * This implementation of nearestN is only suitable for small values of N (ie less than 10).
-   */
-  @Deprecated
-  public void nearestN_orig(Point p, TIntProcedure v, int count, float furthestDistance) {
-    // return immediately if given an invalid "count" parameter
-    if (count <= 0) {
-      return;
-    }
-
-    parents.clear();
-    parents.push(rootNodeId);
-
-    parentsEntry.clear();
-    parentsEntry.push(-1);
-
-    nearestNIds.init(count);
-
-    // TODO: possible shortcut here - could test for intersection with the
-    //       MBR of the root node. If no intersection, return immediately.
-
-    float furthestDistanceSq = furthestDistance * furthestDistance;
-
-    while (parents.size() > 0) {
-      Node n = getNode(parents.peek());
-      int startIndex = parentsEntry.peek() + 1;
-
-      if (!n.isLeaf()) {
-        // go through every entry in the index node to check
-        // if it could contain an entry closer than the farthest entry
-        // currently stored.
-        boolean near = false;
-        for (int i = startIndex; i < n.entryCount; i++) {
-          if (Rectangle.distanceSq(n.entriesMinX[i], n.entriesMinY[i],
-                                 n.entriesMaxX[i], n.entriesMaxY[i],
-                                 p.x, p.y) <= furthestDistanceSq) {
-            parents.push(n.ids[i]);
-            parentsEntry.pop();
-            parentsEntry.push(i); // this becomes the start index when the child has been searched
-            parentsEntry.push(-1);
-            near = true;
-            break; // ie go to next iteration of while()
-          }
-        }
-        if (near) {
-          continue;
-        }
-      } else {
-        // go through every entry in the leaf to check if
-        // it is currently one of the nearest N entries.
-        for (int i = 0; i < n.entryCount; i++) {
-          float entryDistanceSq = Rectangle.distanceSq(n.entriesMinX[i], n.entriesMinY[i],
-                                                   n.entriesMaxX[i], n.entriesMaxY[i],
-                                                   p.x, p.y);
-          int entryId = n.ids[i];
-
-          if (entryDistanceSq <= furthestDistanceSq) {
-            // add the new entry to the tree. Note that the higher the distance, the lower the priority
-            nearestNIds.add(entryId, -entryDistanceSq);
-
-            float tempFurthestDistanceSq = -nearestNIds.getLowestPriority();
-            if (tempFurthestDistanceSq < furthestDistanceSq) {
-              furthestDistanceSq = tempFurthestDistanceSq;
-            }
-          }
-        }
-      }
-      parents.pop();
-      parentsEntry.pop();
-    }
-
-    nearestNIds.forEachId(v);
   }
 
   /**
