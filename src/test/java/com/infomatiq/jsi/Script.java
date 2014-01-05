@@ -96,10 +96,12 @@ public class Script {
    */
   public long run(String indexType, Properties indexProperties, String testId, int testType) {
     if (log.isInfoEnabled()) {
-      log.info("runScript: " + indexType + ", testId=" + testId +
-              ", minEntries=" + indexProperties.getProperty("MinNodeEntries") +
+      log.info("runScript: " + indexType + ", testId=" + testId);
+      if (indexProperties != null) {
+        log.info("minEntries=" + indexProperties.getProperty("MinNodeEntries") +
               ", maxEntries=" + indexProperties.getProperty("MaxNodeEntries") +
               ", treeVariant=" + indexProperties.getProperty("TreeVariant"));
+      }
     }
     
     SpatialIndex si = SpatialIndexFactory.newInstance(indexType, indexProperties);
