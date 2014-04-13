@@ -278,12 +278,6 @@
       <scope>test</scope>
     </dependency>
 
-    <dependency>
-      <groupId>sil</groupId>
-      <artifactId>sil</artifactId>
-      <version>0.44.2b</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <distributionManagement>  
