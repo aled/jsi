@@ -16,14 +16,14 @@
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
-package com.infomatiq.jsi;
+package net.sf.jsi;
 
 import java.util.Collections;
 import java.util.List;
 
-import com.infomatiq.jsi.Point;
-import com.infomatiq.jsi.Rectangle;
-import com.infomatiq.jsi.SpatialIndex;
+import net.sf.jsi.Point;
+import net.sf.jsi.Rectangle;
+import net.sf.jsi.SpatialIndex;
 
 /**
  * SortedListDecorator

@@ -17,7 +17,7 @@
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-package com.infomatiq.jsi.rtree;
+package net.sf.jsi.rtree;
 
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -31,11 +31,11 @@ import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.infomatiq.jsi.BuildProperties;
-import com.infomatiq.jsi.Point;
-import com.infomatiq.jsi.Rectangle;
-import com.infomatiq.jsi.PriorityQueue;
-import com.infomatiq.jsi.SpatialIndex;
+import net.sf.jsi.BuildProperties;
+import net.sf.jsi.Point;
+import net.sf.jsi.Rectangle;
+import net.sf.jsi.PriorityQueue;
+import net.sf.jsi.SpatialIndex;
 
 /**
  * <p>This is a lightweight RTree implementation, specifically designed
@@ -125,7 +125,7 @@ public class RTree implements SpatialIndex, Serializable {
    * down), which is used if the property is not specified or is less than 1.
    * </ul></p>
    *
-   * @see com.infomatiq.jsi.SpatialIndex#init(Properties)
+   * @see net.sf.jsi.SpatialIndex#init(Properties)
    */
   public void init(Properties props) {
     if (props == null) {
@@ -165,7 +165,7 @@ public class RTree implements SpatialIndex, Serializable {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#add(Rectangle, int)
+   * @see net.sf.jsi.SpatialIndex#add(Rectangle, int)
    */
   public void add(Rectangle r, int id) {
     if (log.isDebugEnabled()) {
@@ -219,7 +219,7 @@ public class RTree implements SpatialIndex, Serializable {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#delete(Rectangle, int)
+   * @see net.sf.jsi.SpatialIndex#delete(Rectangle, int)
    */
   public boolean delete(Rectangle r, int id) {
     // FindLeaf algorithm inlined here. Note the "official" algorithm
@@ -306,7 +306,7 @@ public class RTree implements SpatialIndex, Serializable {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearest(Point, TIntProcedure, float)
+   * @see net.sf.jsi.SpatialIndex#nearest(Point, TIntProcedure, float)
    */
   public void nearest(Point p, TIntProcedure v, float furthestDistance) {
     Node rootNode = getNode(rootNodeId);
@@ -412,7 +412,7 @@ public class RTree implements SpatialIndex, Serializable {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearestNUnsorted(Point, TIntProcedure, int, float)
+   * @see net.sf.jsi.SpatialIndex#nearestNUnsorted(Point, TIntProcedure, int, float)
    */
   public void nearestNUnsorted(Point p, TIntProcedure v, int count, float furthestDistance) {
     // This implementation is designed to give good performance
@@ -434,7 +434,7 @@ public class RTree implements SpatialIndex, Serializable {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#nearestN(Point, TIntProcedure, int, float)
+   * @see net.sf.jsi.SpatialIndex#nearestN(Point, TIntProcedure, int, float)
    */
   public void nearestN(Point p, TIntProcedure v, int count, float furthestDistance) {
     PriorityQueue distanceQueue = new PriorityQueue(PriorityQueue.SORT_ORDER_DESCENDING);
@@ -448,7 +448,7 @@ public class RTree implements SpatialIndex, Serializable {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#intersects(Rectangle, TIntProcedure)
+   * @see net.sf.jsi.SpatialIndex#intersects(Rectangle, TIntProcedure)
    */
   public void intersects(Rectangle r, TIntProcedure v) {
     Node rootNode = getNode(rootNodeId);
@@ -456,7 +456,7 @@ public class RTree implements SpatialIndex, Serializable {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#contains(Rectangle, TIntProcedure)
+   * @see net.sf.jsi.SpatialIndex#contains(Rectangle, TIntProcedure)
    */
   public void contains(Rectangle r, TIntProcedure v) {
     // find all rectangles in the tree that are contained by the passed rectangle
@@ -511,14 +511,14 @@ public class RTree implements SpatialIndex, Serializable {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#size()
+   * @see net.sf.jsi.SpatialIndex#size()
    */
   public int size() {
     return size;
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#getBounds()
+   * @see net.sf.jsi.SpatialIndex#getBounds()
    */
   public Rectangle getBounds() {
     Rectangle bounds = null;
@@ -535,7 +535,7 @@ public class RTree implements SpatialIndex, Serializable {
   }
 
   /**
-   * @see com.infomatiq.jsi.SpatialIndex#getVersion()
+   * @see net.sf.jsi.SpatialIndex#getVersion()
    */
   public String getVersion() {
     return "RTree-" + BuildProperties.getVersion();

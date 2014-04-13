@@ -18,7 +18,7 @@
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
-package com.infomatiq.jsi;
+package net.sf.jsi;
 
 import java.util.Properties;
 import java.util.Random;
@@ -26,7 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import com.infomatiq.jsi.rtree.RTree;
+import net.sf.jsi.rtree.RTree;
 import gnu.trove.procedure.TIntProcedure;
 
 import org.junit.Test;

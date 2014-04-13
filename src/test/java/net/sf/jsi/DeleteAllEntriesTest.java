@@ -16,7 +16,7 @@
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 
-package com.infomatiq.jsi;
+package net.sf.jsi;
 
 import gnu.trove.procedure.TIntProcedure;
 
@@ -25,7 +25,7 @@ import java.util.Random;
 
 import junit.framework.TestCase;
 
-import com.infomatiq.jsi.rtree.RTree;
+import net.sf.jsi.rtree.RTree;
 
 public class DeleteAllEntriesTest extends TestCase {
 

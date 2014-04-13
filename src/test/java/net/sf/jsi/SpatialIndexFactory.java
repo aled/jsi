@@ -16,14 +16,14 @@
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-package com.infomatiq.jsi;
+package net.sf.jsi;
 
 import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.infomatiq.jsi.SpatialIndex;
+import net.sf.jsi.SpatialIndex;
 
 /**
  * Factory class used to create instances of spatial indexes
@@ -39,7 +39,7 @@ public class SpatialIndexFactory {
   
   public static SpatialIndex newInstance(String type, Properties props) {
     SpatialIndex si = null;
-    String className = "com.infomatiq.jsi." + type;
+    String className = "net.sf.jsi." + type;
     try {
       si = (SpatialIndex) Class.forName(className).newInstance();
       si.init(props);

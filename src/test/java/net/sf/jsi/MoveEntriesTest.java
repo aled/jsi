@@ -16,13 +16,13 @@
 //  License along with this library; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-package com.infomatiq.jsi;
+package net.sf.jsi;
 
 import java.util.Properties;
 import java.util.Random;
 
-import com.infomatiq.jsi.Rectangle;
-import com.infomatiq.jsi.rtree.RTree;
+import net.sf.jsi.Rectangle;
+import net.sf.jsi.rtree.RTree;
 
 import junit.framework.TestCase;
 
