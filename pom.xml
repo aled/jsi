@@ -2,62 +2,39 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>net.sourceforge.jsi</groupId>
+  <groupId>net.sf.jsi</groupId>
   <artifactId>jsi</artifactId>
   <version>1.1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>jsi</name>
+  <description>Java Spatial Index library</description>
   <url>http://www.sourceforge.net/projects/jsi</url>
+
+  <licenses>
+    <license>
+      <name>The GNU Lesser General Public License, Version 2.1 or later</name>
+        <url>http://www.gnu.org/licenses/lgpl-2.1.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Aled Morris</name>
+      <email>aled@users.sourceforge.net</email>
+      <url>http://github.com/aled/jsi</url>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:https://github.com/aled/jsi.git</connection>
+    <developerConnection>scm:git:https://github.com/aled/jsi.git</developerConnection>
+    <url>https://github.com/aled/jsi.git</url>
+  </scm>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
-
-  <repositories>
- 
-    <!-- 
-       Maven is UNBELIEVABLY STUPID. By default, it will install corrupt dependencies in your local repository,
-       DESPITE the fact that checksum verification has failed. Change that default here using 'checksumPolicy'.
-
-       (Note: this is required, because we are using sourceforge to host a maven repository for one of the dependencies. 
-       Unfortunately sourceforge returns an 'error' html page if you try to download a dependency that doesn't exist there;
-       it fails checksum validation but maven installs it anyway, thus breaking all future builds until you delete the offending 
-       file. I can't find any way to prevent maven randomly querying the jsi maven repo for dependencies that I know don't exist there.)
-    -->
-
-    <repository>
-      <id>maven central</id>         
-      <name>maven central</name>
-      <url>http://repo1.maven.org/maven2</url>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </snapshots>
-    </repository>
-
-    <repository>
-      <id>jsi.sourceforge.net</id>
-      <name>sourceforge jsi repository</name>
-      <url>http://sourceforge.net/projects/jsi/files/m2_repo</url>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>always</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </snapshots>
-    </repository>
-  </repositories>
 
   <build>
     <resources>
@@ -202,13 +179,14 @@
           </execution>
         </executions>
       </plugin>
-      
+
+      <!--
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>2.2.2</version>
         <configuration>
           <descriptors>
-            <descriptor>src/main/assembly/with-dependencies-zip.xml</descriptor>-->
+            <descriptor>src/main/assembly/with-dependencies-zip.xml</descriptor>
           </descriptors>
         </configuration>
         <executions>
@@ -221,15 +199,29 @@
           </execution>
         </executions>
       </plugin>
+      -->
 
       <plugin>
         <artifactId>maven-deploy-plugin</artifactId>
         <version>2.7</version>
       </plugin>
+
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>1.5</version>
+          <executions>
+              <execution>
+                  <id>sign-artifacts</id>
+                  <phase>verify</phase>
+                  <goals>
+                      <goal>sign</goal>
+                  </goals>
+              </execution>
+          </executions>
+      </plugin>
     </plugins>
 
-    <!-- the following needed for maven version 3 -->
-    <!--
     <extensions>
       <extension>
         <groupId>org.apache.maven.wagon</groupId>
@@ -237,7 +229,6 @@
          <version>2.2</version>
       </extension>
     </extensions>
-    --> 
   </build>
 
   <dependencies>
@@ -280,25 +271,43 @@
 
   </dependencies>
 
-  <distributionManagement>  
+  <distributionManagement>
+
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+
+      <!-- this is where the release zips used to go before version 1.0 -->
+      <!--
+      <url>scp://shell.sourceforge.net/home/frs/project/j/js/jsi/jsi/${version}</url>
+      -->
+
+      <!-- Use this for sourceforge -->
+      <!--
+      <id>jsi.sourceforge.net</id>
+      <url>scp://shell.sourceforge.net/home/frs/project/j/js/jsi/m2_repo</url>
+      -->
+
+      <!-- use this for testing... -->
+      <!--
+      <id>localhost</id>
+      <url>scp://localhost/temp/jsi-deploy-test/j/js/jsi/m2_repo</url>
+      -->
+
+    </repository>
+
     <!-- It is necessary to create a shell before uploading, like this: -->
     <!-- ssh -t aled,jsi@shell.sourceforge.net create -->
     <site>
       <id>jsi.sourceforge.net</id>
       <url>scp://shell.sourceforge.net/home/project-web/jsi/htdocs</url>
     </site>
-    
-    <!-- this is where the release zips used to go before version 1.0 -->
-    <!--<url>scp://shell.sourceforge.net/home/frs/project/j/js/jsi/jsi/${version}</url>-->
-    
-    <repository>
-      <id>jsi.sourceforge.net</id>
-      <url>scp://shell.sourceforge.net/home/frs/project/j/js/jsi/m2_repo</url>
-      
-      <!-- use this for testing... -->
-      <!-- <id>localhost</id> -->
-      <!-- <url>scp://localhost/temp/jsi-deploy-test/j/js/jsi/m2_repo</url> -->
-    </repository>
+
   </distributionManagement>
 
   <reporting>
