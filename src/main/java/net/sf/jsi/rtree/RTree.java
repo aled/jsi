@@ -442,7 +442,12 @@ public class RTree implements SpatialIndex, Serializable {
     distanceQueue.setSortOrder(PriorityQueue.SORT_ORDER_ASCENDING);
 
     while (distanceQueue.size() > 0) {
-      v.execute(distanceQueue.getValue());
+      boolean result = v.execute(distanceQueue.getValue());
+      
+      if(!result) {
+      	break;
+      }
+      
       distanceQueue.pop();
     }
   }
