@@ -118,7 +118,11 @@ public class SILWrapper implements SpatialIndex {
                               new IntProcedureVisitor(v));
   }
 
-  /**
+    public void nearestNInKMDistance(Point p, TIntProcedure v, int count, float furthestDistanceKM) {
+
+    }
+
+    /**
    * Same as nearestN
    * 
    * @see net.sf.jsi.SpatialIndex#nearestNUnsorted(Point, gnu.trove.TIntProcedure, int, float)

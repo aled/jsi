@@ -138,9 +138,13 @@ public class SimpleIndex implements SpatialIndex {
         return true;
       } 
     });
-  }  
+  }
 
-  /**
+    public void nearestNInKMDistance(Point p, TIntProcedure v, int count, float furthestDistanceKM) {
+
+    }
+
+    /**
    * Same as nearestN
    * 
    * @see net.sf.jsi.SpatialIndex#nearestNUnsorted(Point, gnu.trove.TIntProcedure, int, float)
