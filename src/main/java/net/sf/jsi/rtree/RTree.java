@@ -541,7 +541,7 @@ public class RTree implements SpatialIndex, Serializable {
 
         while (distanceQueue.size() > 0) {
             boolean result = v.execute(distanceQueue.getValue());
-            if(!result) {
+            if (!result) {
                 break;
             }
             distanceQueue.pop();
@@ -555,7 +555,7 @@ public class RTree implements SpatialIndex, Serializable {
 
         while (distanceQueue.size() > 0) {
             boolean result = v.execute(distanceQueue.getValue());
-            if(!result) {
+            if( !result) {
                 break;
             }
             distanceQueue.pop();

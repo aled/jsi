@@ -4,7 +4,7 @@
 
   <groupId>net.sf.jsi</groupId>
   <artifactId>jsi</artifactId>
-  <version>1.1.0-IRIAN</version>
+  <version>1.1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>jsi</name>
@@ -33,9 +33,7 @@
   </scm>
 
   <properties>
-      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      <maven.compiler.source>1.5</maven.compiler.source>
-      <maven.compiler.target>1.5</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <build>
@@ -208,6 +206,20 @@
         <version>2.7</version>
       </plugin>
 
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>1.5</version>
+          <executions>
+              <execution>
+                  <id>sign-artifacts</id>
+                  <phase>verify</phase>
+                  <goals>
+                      <goal>sign</goal>
+                  </goals>
+              </execution>
+          </executions>
+      </plugin>
     </plugins>
 
     <extensions>
@@ -260,10 +272,42 @@
   </dependencies>
 
   <distributionManagement>
-      <repository>
-          <id>irian-3rd-party</id>
-          <url>http://maven.irian.at/content/repositories/thirdparty/</url>
-      </repository>
+
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+
+      <!-- this is where the release zips used to go before version 1.0 -->
+      <!--
+      <url>scp://shell.sourceforge.net/home/frs/project/j/js/jsi/jsi/${version}</url>
+      -->
+
+      <!-- Use this for sourceforge -->
+      <!--
+      <id>jsi.sourceforge.net</id>
+      <url>scp://shell.sourceforge.net/home/frs/project/j/js/jsi/m2_repo</url>
+      -->
+
+      <!-- use this for testing... -->
+      <!--
+      <id>localhost</id>
+      <url>scp://localhost/temp/jsi-deploy-test/j/js/jsi/m2_repo</url>
+      -->
+
+    </repository>
+
+    <!-- It is necessary to create a shell before uploading, like this: -->
+    <!-- ssh -t aled,jsi@shell.sourceforge.net create -->
+    <site>
+      <id>jsi.sourceforge.net</id>
+      <url>scp://shell.sourceforge.net/home/project-web/jsi/htdocs</url>
+    </site>
+
   </distributionManagement>
 
   <reporting>
