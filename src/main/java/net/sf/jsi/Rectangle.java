@@ -50,7 +50,7 @@ public class Rectangle {
     set(x1, y1, x2, y2);
   }
 
- /**
+  /**
    * Sets the size of the rectangle.
    *
    * @param x1 coordinate of any corner of the rectangle
@@ -118,7 +118,7 @@ public class Rectangle {
    * @return true if r1 intersects r2, false otherwise.
    */
   static public boolean intersects(float r1MinX, float r1MinY, float r1MaxX, float r1MaxY,
-                                 float r2MinX, float r2MinY, float r2MaxX, float r2MaxY) {
+                                   float r2MinX, float r2MinY, float r2MaxX, float r2MaxY) {
     return r1MaxX >= r2MinX && r1MinX <= r2MaxX && r1MaxY >= r2MinY && r1MinY <= r2MaxY;
   }
 
@@ -273,26 +273,26 @@ public class Rectangle {
    */
   public float enlargement(Rectangle r) {
     float enlargedArea = (Math.max(maxX, r.maxX) - Math.min(minX, r.minX)) *
-                         (Math.max(maxY, r.maxY) - Math.min(minY, r.minY));
+            (Math.max(maxY, r.maxY) - Math.min(minY, r.minY));
 
     return enlargedArea - area();
   }
 
   /**
-    * Calculate the area by which a rectangle would be enlarged if
-    * added to the passed rectangle..
-    *
-    * @param r1MinX minimum X coordinate of rectangle 1
-    * @param r1MinY minimum Y coordinate of rectangle 1
-    * @param r1MaxX maximum X coordinate of rectangle 1
-    * @param r1MaxY maximum Y coordinate of rectangle 1
-    * @param r2MinX minimum X coordinate of rectangle 2
-    * @param r2MinY minimum Y coordinate of rectangle 2
-    * @param r2MaxX maximum X coordinate of rectangle 2
-    * @param r2MaxY maximum Y coordinate of rectangle 2
-    *
-    * @return enlargement
-    */
+   * Calculate the area by which a rectangle would be enlarged if
+   * added to the passed rectangle..
+   *
+   * @param r1MinX minimum X coordinate of rectangle 1
+   * @param r1MinY minimum Y coordinate of rectangle 1
+   * @param r1MaxX maximum X coordinate of rectangle 1
+   * @param r1MaxY maximum Y coordinate of rectangle 1
+   * @param r2MinX minimum X coordinate of rectangle 2
+   * @param r2MinY minimum Y coordinate of rectangle 2
+   * @param r2MaxX maximum X coordinate of rectangle 2
+   * @param r2MaxY maximum Y coordinate of rectangle 2
+   *
+   * @return enlargement
+   */
   static public float enlargement(float r1MinX, float r1MinY, float r1MaxX, float r1MaxY,
                                   float r2MinX, float r2MinY, float r2MaxX, float r2MaxY) {
     float r1Area = (r1MaxX - r1MinX) * (r1MaxY - r1MinY);
@@ -379,13 +379,13 @@ public class Rectangle {
 
   @Override
   public int hashCode() {
-      final int prime = 31;
-      int result = 1;
-      result = prime * result + Float.floatToIntBits(this.maxX);
-      result = prime * result + Float.floatToIntBits(this.maxY);
-      result = prime * result + Float.floatToIntBits(this.minX);
-      result = prime * result + Float.floatToIntBits(this.minY);
-      return result;
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + Float.floatToIntBits(this.maxX);
+    result = prime * result + Float.floatToIntBits(this.maxY);
+    result = prime * result + Float.floatToIntBits(this.minX);
+    result = prime * result + Float.floatToIntBits(this.minY);
+    return result;
   }
 
   /**
@@ -395,7 +395,7 @@ public class Rectangle {
    * @param o The object to compare with this rectangle
    */
   @Override
-public boolean equals(Object o) {
+  public boolean equals(Object o) {
     boolean equals = false;
     if (o instanceof Rectangle) {
       Rectangle r = (Rectangle) o;
