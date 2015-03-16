@@ -113,6 +113,7 @@ public interface SpatialIndex {
   public void nearestN(Point p, TIntProcedure v, int n, float distance);
 
   public void nearestNInKMDistance(Point p, TIntProcedure v, int count, float furthestDistanceKM);
+
   /**
    * Same as nearestN, except the found rectangles are not returned
    * in sorted order. This will be faster, if sorting is not required

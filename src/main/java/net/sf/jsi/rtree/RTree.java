@@ -244,7 +244,7 @@ public class RTree implements SpatialIndex, Serializable {
         boolean contains = false;
         for (int i = startIndex; i < n.entryCount; i++) {
           if (Rectangle.contains(n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i],
-                  r.minX, r.minY, r.maxX, r.maxY)) {
+              r.minX, r.minY, r.maxX, r.maxY)) {
             parents.push(n.ids[i]);
             parentsEntry.pop();
             parentsEntry.push(i); // this becomes the start index when the child has been searched
@@ -344,8 +344,8 @@ public class RTree implements SpatialIndex, Serializable {
         boolean near = false;
         for (int i = startIndex; i < n.entryCount; i++) {
           if (Rectangle.distanceSq(n.entriesMinX[i], n.entriesMinY[i],
-                  n.entriesMaxX[i], n.entriesMaxY[i],
-                  p.x, p.y) <= furthestDistanceSq) {
+              n.entriesMaxX[i], n.entriesMaxY[i],
+              p.x, p.y) <= furthestDistanceSq) {
             parents.push(n.ids[i]);
             parentsEntry.pop();
             parentsEntry.push(i); // this becomes the start index when the child has been searched
@@ -362,8 +362,8 @@ public class RTree implements SpatialIndex, Serializable {
         // it is currently one of the nearest N entries.
         for (int i = 0; i < n.entryCount; i++) {
           float entryDistanceSq = Rectangle.distanceSq(n.entriesMinX[i], n.entriesMinY[i],
-                  n.entriesMaxX[i], n.entriesMaxY[i],
-                  p.x, p.y);
+              n.entriesMaxX[i], n.entriesMaxY[i],
+              p.x, p.y);
           int entryId = n.ids[i];
 
           if (entryDistanceSq <= furthestDistanceSq) {
@@ -402,6 +402,56 @@ public class RTree implements SpatialIndex, Serializable {
       }
       parents.pop();
       parentsEntry.pop();
+    }
+  }
+
+  /**
+   * @see net.sf.jsi.SpatialIndex#nearestNUnsorted(Point, TIntProcedure, int, float)
+   */
+  public void nearestNUnsorted(Point p, TIntProcedure v, int count, float furthestDistance) {
+    // This implementation is designed to give good performance
+    // where
+    //   o N is high (100+)
+    //   o The results do not need to be sorted by distance.
+    //
+    // Uses a priority queue as the underlying data structure.
+    //
+    // Note that more than N items will be returned if items N and N+x have the
+    // same priority.
+    PriorityQueue distanceQueue = new PriorityQueue(PriorityQueue.SORT_ORDER_DESCENDING);
+    createNearestNDistanceQueue(p, count, distanceQueue, furthestDistance);
+
+    while (distanceQueue.size() > 0) {
+      v.execute(distanceQueue.getValue());
+      distanceQueue.pop();
+    }
+  }
+
+  /**
+   * @see net.sf.jsi.SpatialIndex#nearestN(Point, TIntProcedure, int, float)
+   */
+  public void nearestN(Point p, TIntProcedure v, int count, float furthestDistance) {
+    PriorityQueue distanceQueue = new PriorityQueue(PriorityQueue.SORT_ORDER_DESCENDING);
+    createNearestNDistanceQueue(p, count, distanceQueue, furthestDistance);
+    distanceQueue.setSortOrder(PriorityQueue.SORT_ORDER_ASCENDING);
+
+    while (distanceQueue.size() > 0) {
+      v.execute(distanceQueue.getValue());
+      distanceQueue.pop();
+    }
+  }
+
+  public void nearestNInKMDistance(Point p, TIntProcedure v, int count, float furthestDistanceKM) {
+    PriorityQueue distanceQueue = new PriorityQueue(PriorityQueue.SORT_ORDER_DESCENDING);
+    createNearestNDistanceQueueInKM(p, count, distanceQueue, furthestDistanceKM);
+    distanceQueue.setSortOrder(PriorityQueue.SORT_ORDER_ASCENDING);
+
+    while (distanceQueue.size() > 0) {
+      boolean result = v.execute(distanceQueue.getValue());
+      if( !result) {
+        break;
+      }
+      distanceQueue.pop();
     }
   }
 
@@ -497,10 +547,10 @@ public class RTree implements SpatialIndex, Serializable {
     double dLat = deg2rad(lat2-lat1);  // deg2rad below
     double dLon = deg2rad(lon2-lon1);
     double a =
-            Math.sin(dLat/2) * Math.sin(dLat/2) +
-                    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-                            Math.sin(dLon/2) * Math.sin(dLon/2)
-            ;
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                Math.sin(dLon/2) * Math.sin(dLon/2)
+        ;
     double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return (float)(R * c); // Distance in km
   }
@@ -508,60 +558,6 @@ public class RTree implements SpatialIndex, Serializable {
   private double deg2rad(float deg) {
     return deg * (Math.PI/180);
   }
-
-  /**
-   * @see net.sf.jsi.SpatialIndex#nearestNUnsorted(Point, TIntProcedure, int, float)
-   */
-  public void nearestNUnsorted(Point p, TIntProcedure v, int count, float furthestDistance) {
-    // This implementation is designed to give good performance
-    // where
-    //   o N is high (100+)
-    //   o The results do not need to be sorted by distance.
-    //
-    // Uses a priority queue as the underlying data structure.
-    //
-    // Note that more than N items will be returned if items N and N+x have the
-    // same priority.
-    PriorityQueue distanceQueue = new PriorityQueue(PriorityQueue.SORT_ORDER_DESCENDING);
-    createNearestNDistanceQueue(p, count, distanceQueue, furthestDistance);
-
-    while (distanceQueue.size() > 0) {
-      v.execute(distanceQueue.getValue());
-      distanceQueue.pop();
-    }
-  }
-
-  /**
-   * @see net.sf.jsi.SpatialIndex#nearestN(Point, TIntProcedure, int, float)
-   */
-  public void nearestN(Point p, TIntProcedure v, int count, float furthestDistance) {
-    PriorityQueue distanceQueue = new PriorityQueue(PriorityQueue.SORT_ORDER_DESCENDING);
-    createNearestNDistanceQueue(p, count, distanceQueue, furthestDistance);
-    distanceQueue.setSortOrder(PriorityQueue.SORT_ORDER_ASCENDING);
-
-    while (distanceQueue.size() > 0) {
-      boolean result = v.execute(distanceQueue.getValue());
-      if (!result) {
-        break;
-      }
-      distanceQueue.pop();
-    }
-  }
-
-  public void nearestNInKMDistance(Point p, TIntProcedure v, int count, float furthestDistanceKM) {
-    PriorityQueue distanceQueue = new PriorityQueue(PriorityQueue.SORT_ORDER_DESCENDING);
-    createNearestNDistanceQueueInKM(p, count, distanceQueue, furthestDistanceKM);
-    distanceQueue.setSortOrder(PriorityQueue.SORT_ORDER_ASCENDING);
-
-    while (distanceQueue.size() > 0) {
-      boolean result = v.execute(distanceQueue.getValue());
-      if( !result) {
-        break;
-      }
-      distanceQueue.pop();
-    }
-  }
-
 
   /**
    * @see net.sf.jsi.SpatialIndex#intersects(Rectangle, TIntProcedure)
@@ -597,7 +593,7 @@ public class RTree implements SpatialIndex, Serializable {
         boolean intersects = false;
         for (int i = startIndex; i < n.entryCount; i++) {
           if (Rectangle.intersects(r.minX, r.minY, r.maxX, r.maxY,
-                  n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i])) {
+              n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i])) {
             parents.push(n.ids[i]);
             parentsEntry.pop();
             parentsEntry.push(i); // this becomes the start index when the child has been searched
@@ -614,7 +610,7 @@ public class RTree implements SpatialIndex, Serializable {
         // it is contained by the passed rectangle
         for (int i = 0; i < n.entryCount; i++) {
           if (Rectangle.contains(r.minX, r.minY, r.maxX, r.maxY,
-                  n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i])) {
+              n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i])) {
             if (!v.execute(n.ids[i])) {
               return;
             }
@@ -782,7 +778,7 @@ public class RTree implements SpatialIndex, Serializable {
     // debug code
     if (log.isDebugEnabled()) {
       float newArea = Rectangle.area(n.mbrMinX, n.mbrMinY, n.mbrMaxX, n.mbrMaxY) +
-              Rectangle.area(newNode.mbrMinX, newNode.mbrMinY, newNode.mbrMaxX, newNode.mbrMaxY);
+          Rectangle.area(newNode.mbrMinX, newNode.mbrMinY, newNode.mbrMaxX, newNode.mbrMaxY);
       float percentageIncrease = (100 * (newArea - initialArea)) / initialArea;
       log.debug("Node " + n.nodeId + " split. New area increased by " + percentageIncrease + "%");
     }
@@ -845,8 +841,8 @@ public class RTree implements SpatialIndex, Serializable {
 
       if (log.isDebugEnabled()) {
         log.debug("Entry " + i + ", dimension X: HighestLow = " + tempHighestLow +
-                " (index " + tempHighestLowIndex + ")" + ", LowestHigh = " +
-                tempLowestHigh + " (index " + tempLowestHighIndex + ", NormalizedSeparation = " + normalizedSeparation);
+            " (index " + tempHighestLowIndex + ")" + ", LowestHigh = " +
+            tempLowestHigh + " (index " + tempLowestHighIndex + ", NormalizedSeparation = " + normalizedSeparation);
       }
 
       // PS3 [Select the most extreme pair] Choose the pair with the greatest
@@ -890,8 +886,8 @@ public class RTree implements SpatialIndex, Serializable {
 
       if (log.isDebugEnabled()) {
         log.debug("Entry " + i + ", dimension Y: HighestLow = " + tempHighestLow +
-                " (index " + tempHighestLowIndex + ")" + ", LowestHigh = " +
-                tempLowestHigh + " (index " + tempLowestHighIndex + ", NormalizedSeparation = " + normalizedSeparation);
+            " (index " + tempHighestLowIndex + ")" + ", LowestHigh = " +
+            tempLowestHigh + " (index " + tempLowestHighIndex + ", NormalizedSeparation = " + normalizedSeparation);
       }
 
       // PS3 [Select the most extreme pair] Choose the pair with the greatest
@@ -932,8 +928,8 @@ public class RTree implements SpatialIndex, Serializable {
       newNode.addEntry(newRectMinX, newRectMinY, newRectMaxX, newRectMaxY, newId);
     } else {
       newNode.addEntry(n.entriesMinX[highestLowIndex], n.entriesMinY[highestLowIndex],
-              n.entriesMaxX[highestLowIndex], n.entriesMaxY[highestLowIndex],
-              n.ids[highestLowIndex]);
+          n.entriesMaxX[highestLowIndex], n.entriesMaxY[highestLowIndex],
+          n.ids[highestLowIndex]);
       n.ids[highestLowIndex] = -1;
 
       // move the new rectangle into the space vacated by the seed for the new node
@@ -984,9 +980,9 @@ public class RTree implements SpatialIndex, Serializable {
         }
 
         float nIncrease = Rectangle.enlargement(n.mbrMinX, n.mbrMinY, n.mbrMaxX, n.mbrMaxY,
-                n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i]);
+            n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i]);
         float newNodeIncrease = Rectangle.enlargement(newNode.mbrMinX, newNode.mbrMinY, newNode.mbrMaxX, newNode.mbrMaxY,
-                n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i]);
+            n.entriesMinX[i], n.entriesMinY[i], n.entriesMaxX[i], n.entriesMaxY[i]);
 
         float difference = Math.abs(nIncrease - newNodeIncrease);
 
@@ -1010,7 +1006,7 @@ public class RTree implements SpatialIndex, Serializable {
         }
         if (log.isDebugEnabled()) {
           log.debug("Entry " + i + " group0 increase = " + nIncrease + ", group1 increase = " + newNodeIncrease +
-                  ", diff = " + difference + ", MaxDiff = " + maxDifference + " (entry " + next + ")");
+              ", diff = " + difference + ", MaxDiff = " + maxDifference + " (entry " + next + ")");
         }
       }
     }
@@ -1120,9 +1116,9 @@ public class RTree implements SpatialIndex, Serializable {
         // CT4 [Adjust covering rectangle] If N has not been eliminated,
         // adjust EnI to tightly contain all entries in N
         if (n.mbrMinX != parent.entriesMinX[parentEntry] ||
-                n.mbrMinY != parent.entriesMinY[parentEntry] ||
-                n.mbrMaxX != parent.entriesMaxX[parentEntry] ||
-                n.mbrMaxY != parent.entriesMaxY[parentEntry]) {
+            n.mbrMinY != parent.entriesMinY[parentEntry] ||
+            n.mbrMaxX != parent.entriesMaxX[parentEntry] ||
+            n.mbrMaxY != parent.entriesMaxY[parentEntry]) {
           float deletedMinX = parent.entriesMinX[parentEntry];
           float deletedMinY = parent.entriesMinY[parentEntry];
           float deletedMaxX = parent.entriesMaxX[parentEntry];
@@ -1177,7 +1173,7 @@ public class RTree implements SpatialIndex, Serializable {
       // whose rectangle FI needs least enlargement to include EI. Resolve
       // ties by choosing the entry with the rectangle of smaller area.
       float leastEnlargement = Rectangle.enlargement(n.entriesMinX[0], n.entriesMinY[0], n.entriesMaxX[0], n.entriesMaxY[0],
-              minX, minY, maxX, maxY);
+          minX, minY, maxX, maxY);
       int index = 0; // index of rectangle in subtree
       for (int i = 1; i < n.entryCount; i++) {
         float tempMinX = n.entriesMinX[i];
@@ -1185,11 +1181,11 @@ public class RTree implements SpatialIndex, Serializable {
         float tempMaxX = n.entriesMaxX[i];
         float tempMaxY = n.entriesMaxY[i];
         float tempEnlargement = Rectangle.enlargement(tempMinX, tempMinY, tempMaxX, tempMaxY,
-                minX, minY, maxX, maxY);
+            minX, minY, maxX, maxY);
         if ((tempEnlargement < leastEnlargement) ||
-                ((tempEnlargement == leastEnlargement) &&
-                        (Rectangle.area(tempMinX, tempMinY, tempMaxX, tempMaxY) <
-                                Rectangle.area(n.entriesMinX[index], n.entriesMinY[index], n.entriesMaxX[index], n.entriesMaxY[index])))) {
+            ((tempEnlargement == leastEnlargement) &&
+                (Rectangle.area(tempMinX, tempMinY, tempMaxX, tempMaxY) <
+                    Rectangle.area(n.entriesMinX[index], n.entriesMinY[index], n.entriesMaxX[index], n.entriesMaxY[index])))) {
           index = i;
           leastEnlargement = tempEnlargement;
         }
@@ -1223,14 +1219,14 @@ public class RTree implements SpatialIndex, Serializable {
 
       if (parent.ids[entry] != n.nodeId) {
         log.error("Error: entry " + entry + " in node " +
-                parent.nodeId + " should point to node " +
-                n.nodeId + "; actually points to node " + parent.ids[entry]);
+            parent.nodeId + " should point to node " +
+            n.nodeId + "; actually points to node " + parent.ids[entry]);
       }
 
       if (parent.entriesMinX[entry] != n.mbrMinX ||
-              parent.entriesMinY[entry] != n.mbrMinY ||
-              parent.entriesMaxX[entry] != n.mbrMaxX ||
-              parent.entriesMaxY[entry] != n.mbrMaxY) {
+          parent.entriesMinY[entry] != n.mbrMinY ||
+          parent.entriesMaxX[entry] != n.mbrMaxX ||
+          parent.entriesMaxY[entry] != n.mbrMaxY) {
 
         parent.entriesMinX[entry] = n.mbrMinX;
         parent.entriesMinY[entry] = n.mbrMinY;
