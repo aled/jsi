@@ -51,6 +51,12 @@ Alternatively, maven users can use this repository in their pom.xml:
       <name>sourceforge jsi repository</name>
       <url>http://sourceforge.net/projects/jsi/files/m2_repo</url>
     </repository>
+    
+    <dependency>
+      <groupId>net.sourceforge.jsi</groupId>
+      <artifactId>jsi</artifactId>
+      <version>1.0.0</version>
+    </dependency>
 
 Building
 -------
