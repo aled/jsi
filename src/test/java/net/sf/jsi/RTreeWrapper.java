@@ -75,7 +75,11 @@ public class RTreeWrapper implements SpatialIndex {
                  furthestDistance);
   }
 
-  /**
+    public void nearestNInKMDistance(Point p, TIntProcedure v, int count, float furthestDistanceKM) {
+
+    }
+
+    /**
    * @see net.sf.jsi.SpatialIndex#nearestNUnsorted(Point, gnu.trove.TIntProcedure, int, float)
    */
   public void nearestNUnsorted(Point p, TIntProcedure v, int n, float furthestDistance) {
